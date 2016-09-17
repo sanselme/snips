@@ -1,0 +1,16 @@
+'.source.swift':
+  'Package.swift':
+    'prefix': 'spm'
+    'body': '''
+    import PackageDescription
+
+    let package = Package(
+      name: "${1:PackageName}",
+      targets: [$2],
+      dependencies: [$3]
+    )
+    '''
+
+    'Package Dependencies':
+      'prefix': 'package'
+      'body': '.Package(url: $1, majorVersion: $2)'
