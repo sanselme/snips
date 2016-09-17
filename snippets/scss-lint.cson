@@ -1,4 +1,4 @@
-'.source.yml':
+'.source.yaml':
   '.scss-lint.yml':
     'prefix': 'scsslrc'
     'body': '''
