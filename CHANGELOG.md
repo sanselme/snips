@@ -1,3 +1,7 @@
+# Release 0.2.1
+
+- webpack
+
 # Release 0.2.0
 
 - babelrc
