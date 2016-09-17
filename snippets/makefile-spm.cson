@@ -1,0 +1,67 @@
+'.source.makefile':
+  'SPM Makefile':
+    'prefix': 'spmake'
+    'body': '''
+    ifndef CI_BUILD_SCRIPTS_DIR
+    CI_BUILD_SCRIPTS_DIR = ${PWD}
+    endif
+
+    UNAME := ${shell uname}
+
+    ifeq ($(UNAME), Darwin)
+    SWIFTC_FLAGS :=
+    LINKER_FLAGS :=
+    endif
+
+    ifeq ($(UNAME), Linux)
+    SWIFTC_FLAGS := -Xcc -fblocks
+    LINKER_FLAGS := -Xlinker -rpath -Xlinker .build/debug
+    endif
+
+    .PHONY: build test refetch clean custombuild
+
+    all: build
+    refetch: clean fetch
+
+    build: custombuild
+    	@echo --- Running build on $(UNAME)
+    	@echo --- Build script directory: ${CI_BUILD_SCRIPTS_DIR}
+    	@echo --- Checking swift version
+    	swift --version
+    	@echo --- Checking swiftc version
+    	swiftc --version
+    	@echo --- Checking git revision and branch
+    	- git rev-parse HEAD
+    	- git rev-parse --abbrev-ref HEAD
+    ifeq ($(UNAME), Linux)
+    	@echo --- Checking Linux release
+    	- lsb_relase -d
+    endif
+    	@echo --- Invoking swift build
+    	swift build ${SWIFTC_FLAGS} ${LINKER_FLAGS}
+
+    test: build
+    	@echo --- Invoking swift test
+    	swift test
+
+    fetch:
+    	@echo --- Fetching dependencies
+    	swift package fetch
+
+    update:
+    	@echo --- Updating packages
+    	swift package update
+
+    clean:
+    	@echo --- Invoking swift build --clean
+    	- swift build --clean
+    	@echo --- Removing .build and Packages directory
+    	- rm -rf .build
+    	- rm -rf Packages
+
+    xcode:
+    	@echo --- Invoking swift package generate-xcodeproj
+    	swift package generate-xcodeproj
+
+    custombuild: # do nothing - for the calling build to override
+    '''

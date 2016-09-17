@@ -1,3 +1,8 @@
+# Release 0.3.0
+
+- makefilenpm
+- makefilespm
+
 # Release 0.2.1
 
 - webpack
