@@ -1,3 +1,7 @@
+# Release 0.3.2
+
+- fix scsslintrc
+
 # Release 0.3.1
 
 - spm
