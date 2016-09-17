@@ -1,0 +1,9 @@
+'.source.json':
+  '.babelrc':
+    'prefix': 'brc'
+    'body': '''
+    {
+      "presets": ["latest"],
+      "plugins": ["transform-runtime"]
+    }
+    '''

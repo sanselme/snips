@@ -1,0 +1,25 @@
+'.source.json':
+  '.jscsrc':
+    'prefix': 'jscsrc'
+    'body': '''
+    {
+      "preset": "google",
+      "fileExtensions": [".js", ".jsx", ".vue"],
+      "maximumLineLength": 120,
+      "safeContextKeyword": "that",
+
+      "disallowImplicitTypeConversion": ["string"],
+      "disallowKeywords": ["with"],
+      "disallowSpacesInsideObjectBrackets": null,
+
+      "requireCurlyBraces": true,
+      "requireParenthesesAroundIIFE": true,
+      "requireOperatorBeforeLineBreak": false,
+
+      "validateIndentation": 2,
+      "validateLineBreaks": false,
+      "validateQuoteMarks": "\\\\\"",
+
+      "excludeFiles": ["dist/**", "node_modules/**"]
+    }
+    '''
