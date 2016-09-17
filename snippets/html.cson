@@ -1,0 +1,21 @@
+'.text.html':
+  'HTML':
+    'prefix': 'html'
+    'body': '''
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta name="charset" content="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <meta name="author" content="${1:Schubert Anselme <sanselme@icloud.com>}">
+        <meta name="description" content="$2">
+        <title>$3</title>
+        <link rel="icon" href="favicon.ico">
+        <link rel="icon" href="favicon.png">
+      </head>
+      <body>
+        <div class="container"></div>
+        <script src="bundle.js"></script>
+      </body>
+    </html>
+    '''

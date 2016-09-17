@@ -1,0 +1,19 @@
+{
+  "name": "snips",
+  "version": "0.1.0",
+  "description": "My personal Atom snippets",
+  "repository": "https://github.com/sanselme/snips.git",
+  "keywords": ["snippets"],
+  "author": "Schubert Anselme <sanselme@icloud.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sanselme/snips/issues"
+  },
+  "homepage": "https://github.com/sanselme/snips#readme",
+  "activationCommands": {
+    "atom-workspace": "snips:toggle"
+  },
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  }
+}
