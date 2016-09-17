@@ -1,0 +1,37 @@
+'.source.js':
+  'webpack.config.js':
+    'prefix': 'webpack'
+    'body': '''
+    const path = require("path");
+    const webpack = require("webpack");
+
+    const debug = process.env.NODE_ENV !== "production";
+
+    const PATHS = {
+      src: path.resolve(__dirname, "src"),
+      dist: path.resolve(__dirname, "dist")
+    };
+
+    module.exports = {
+      devtool: "inline-source-map",
+      resolve: {extensions: ["", ".js", ".jsx", ".vue"]},
+      entry: {bundle: PATHS.src},
+      output: {
+        path: PATHS.dist,
+        publicPath: "/",
+        filename: "[name].js"
+      },
+      module: {
+        loaders: [
+          {test: /.jsx?$/, include: PATHS.src, loader: "babel"},
+          {test: /.vue$/, include: PATHS.src, loader: "vue"},
+          {test: /.s?css$/, include: PATHS.src, loader: "style!css!autoprefixer!sass"},
+          {test: /.(jpe?g|png|gif|svg|ttf|eot|woff2?)/, loader: "file"}
+        ]
+      },
+      plugins: debug ? [] : [
+        new webpack.optimize.UglifyJsPlugin(),
+        new webpack.optimize.DedupePlugin()
+      ]
+    };
+    '''
