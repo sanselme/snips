@@ -25,7 +25,7 @@
         loaders: [
           {test: /.jsx?$/, include: PATHS.src, loader: "babel"},
           {test: /.vue$/, include: PATHS.src, loader: "vue"},
-          {test: /.s?css$/, include: PATHS.src, loader: "style!css!autoprefixer!sass"},
+          {test: /.s?css$/, include: PATHS.src, loader: "style!css!postcss!sass"},
           {test: /.(jpe?g|png|gif|svg|ttf|eot|woff2?)/, loader: "file"}
         ]
       },
