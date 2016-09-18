@@ -1,3 +1,7 @@
+# Release 0.4.1
+
+- fix npackage
+
 # Release 0.4.0
 
 - npackage
