@@ -1,3 +1,8 @@
+# Release 0.4.2
+
+- update npackage
+- update webpack
+
 # Release 0.4.1
 
 - fix npackage
