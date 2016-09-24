@@ -14,7 +14,7 @@
 
     module.exports = {
       devtool: "inline-source-map",
-      resolve: {extensions: ["", ".js", ".jsx", ".vue"]},
+      resolve: {extensions: ["", ".js", ".vue"]},
       entry: {bundle: PATHS.src},
       output: {
         path: PATHS.dist,
@@ -23,9 +23,7 @@
       },
       module: {
         loaders: [
-          {test: /.jsx?$/, include: PATHS.src, loader: "babel"},
           {test: /.vue$/, include: PATHS.src, loader: "vue"},
-          {test: /.s?css$/, include: PATHS.src, loader: "style!css!postcss!sass"},
           {test: /.(jpe?g|png|gif|svg|ttf|eot|woff2?)/, loader: "file"}
         ]
       },
