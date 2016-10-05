@@ -28,8 +28,11 @@
         ]
       },
       plugins: debug ? [] : [
-        new webpack.optimize.UglifyJsPlugin(),
-        new webpack.optimize.DedupePlugin()
+        new webpack.optimize.DedupePlugin(),
+        new webpack.optimize.UglifyJsPlugin({
+          comments: false,
+          sourceMap: false
+        })
       ]
     };
     '''
