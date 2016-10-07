@@ -11,6 +11,6 @@
     )
     '''
 
-    'Package Dependencies':
-      'prefix': 'package'
-      'body': '.Package(url: $1, majorVersion: $2)'
+  'Package Dependencies':
+    'prefix': 'package'
+    'body': '.Package(url: $1, majorVersion: $2)'
