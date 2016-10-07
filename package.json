@@ -1,6 +1,6 @@
 {
   "name": "snips",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "My personal Atom snippets",
   "repository": "https://github.com/sanselme/snips.git",
   "keywords": ["snippets"],
