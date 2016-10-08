@@ -59,6 +59,14 @@
     	- rm -rf .build
     	- rm -rf Packages
 
+    lib:
+    	@echo --- Invoking swift package init
+    	swift package init
+
+    exe:
+    	@echo --- Invoking swift package init --type executable
+    	swift package init --type executable
+
     xcode:
     	@echo --- Invoking swift package generate-xcodeproj
     	swift package generate-xcodeproj
