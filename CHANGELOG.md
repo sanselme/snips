@@ -1,3 +1,7 @@
+# Release 0.5.1
+
+- fix gigignore
+
 # Release 0.5.0
 
 - gitignore
