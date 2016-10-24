@@ -1,3 +1,7 @@
+# Release 0.6.2
+
+- update package
+
 # Release 0.6.1
 
 - update license
