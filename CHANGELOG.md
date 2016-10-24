@@ -1,3 +1,7 @@
+# Release 0.7.0
+
+- remove gig
+
 # Release 0.6.3
 
 - update package
