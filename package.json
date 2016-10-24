@@ -1,17 +1,17 @@
 {
   "name": "snips",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "My personal Atom snippets",
-  "repository": "https://github.com/sanselme/snips.git",
+  "repository": "https://git.interactive-fx.com/sanselme/snips.git",
   "keywords": [
     "snippets"
   ],
   "author": "Schubert Anselme <sanselme@icloud.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sanselme/snips/issues"
+    "url": "https://git.interactive-fx.com/sanselme/snips/issues"
   },
-  "homepage": "https://github.com/sanselme/snips#readme",
+  "homepage": "https://git.interactive-fx.com/sanselme/snips#readme",
   "activationCommands": {
     "atom-workspace": "snips:toggle"
   },
