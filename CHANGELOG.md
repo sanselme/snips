@@ -1,3 +1,8 @@
+# Release 0.6.0
+
+- change legal
+- change readme
+
 # Release 0.5.1
 
 - fix gigignore
