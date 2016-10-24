@@ -1,3 +1,8 @@
+# Release 0.6.1
+
+- update license
+- update package
+
 # Release 0.6.0
 
 - change legal
