@@ -1,3 +1,7 @@
+# Release 0.7.1
+
+- update spm
+
 # Release 0.7.0
 
 - remove gig

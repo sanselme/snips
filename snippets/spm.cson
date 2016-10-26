@@ -13,4 +13,4 @@
 
   'Package Dependencies':
     'prefix': 'package'
-    'body': '.Package(url: $1, majorVersion: $2)'
+    'body': '.Package(url: $1, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max))'
