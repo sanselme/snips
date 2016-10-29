@@ -13,4 +13,4 @@
 
   'Package Dependencies':
     'prefix': 'package'
-    'body': '.Package(url: $1, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max))'
+    'body': '.Package(url: "https://github.com/${1:account}/${2:package}", versions: Version(.min, .min, .min) ..< Version(.max, .max, .max))'
