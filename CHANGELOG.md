@@ -1,3 +1,7 @@
+# Release 0.7.2
+
+- update spm
+
 # Release 0.7.1
 
 - update spm
