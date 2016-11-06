@@ -1,3 +1,7 @@
+# Release 0.7.4
+
+- update spm
+
 # Release 0.7.3
 
 - update readme
@@ -10,7 +14,7 @@
 
 - update spm
 
-# Release 0.7.0
+# Release 0.7
 
 - remove gig
 
@@ -27,7 +31,7 @@
 - update license
 - update package
 
-# Release 0.6.0
+# Release 0.6
 
 - change legal
 - change readme
@@ -36,7 +40,7 @@
 
 - fix gigignore
 
-# Release 0.5.0
+# Release 0.5
 
 - gitignore
 
@@ -67,7 +71,7 @@
 
 - fix npackage
 
-# Release 0.4.0
+# Release 0.4
 
 - npackage
 
@@ -83,7 +87,7 @@
 
 - spm
 
-# Release 0.3.0
+# Release 0.3
 
 - makefilenpm
 - makefilespm
@@ -92,13 +96,13 @@
 
 - webpack
 
-# Release 0.2.0
+# Release 0.2
 
 - babelrc
 - jscsrc
 - scsslintrc
 
-# Release 0.1.0
+# Release 0.1
 
 - legal
 - readme
