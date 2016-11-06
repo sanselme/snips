@@ -2,15 +2,27 @@
   'Package.swift':
     'prefix': 'spm'
     'body': '''
+    //
+    //  Package.swift
+    //  ${1:PackageName}
+    //
+    //  Created by ${2:Schubert Anselme} on ${3:YYYY}-${4:MM}-${5:DD}}.
+    //
+    //
+
     import PackageDescription
 
+
+    let urls = [
+      "https://${6:github.com}/${7:account}/${8:package}"
+    ];
+
     let package = Package(
-      name: "${1:PackageName}",
-      targets: [$2],
-      dependencies: [$3]
+        name: "scaffold-perfect",
+        dependencies: urls.map { .Package(url: $0, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
     )
     '''
 
   'Package Dependencies':
     'prefix': 'package'
-    'body': '.Package(url: "https://github.com/${1:account}/${2:package}", versions: Version(.min, .min, .min) ..< Version(.max, .max, .max))'
+    'body': '.Package(url: "https://${1:github.com}/${2:account}/${3:package}", versions: Version(.min, .min, .min) ..< Version(.max, .max, .max))'
