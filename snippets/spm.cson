@@ -19,7 +19,7 @@
 
     let package = Package(
         name: "${1:PackageName}",
-        dependencies: urls.map { .Package(url: urls, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
+        dependencies: urls.map { .Package(url: \\$0, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
     )
     '''
 
