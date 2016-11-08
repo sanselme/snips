@@ -18,11 +18,17 @@
     ];
 
     let package = Package(
-        name: "scaffold-perfect",
-        dependencies: urls.map { .Package(url: $0, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
+        name: "${1:PackageName}",
+        dependencies: urls.map { .Package(url: urls, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
     )
     '''
 
   'Package Dependencies':
     'prefix': 'package'
     'body': '.Package(url: "https://${1:github.com}/${2:account}/${3:package}", versions: Version(.min, .min, .min) ..< Version(.max, .max, .max))'
+
+  'Package URLs':
+    'prefix': 'purl'
+    'body': '''
+    "https://${1:github.com}/${2:account}/${3:package}"
+    '''
