@@ -1,3 +1,7 @@
+# Release 0.7.7
+
+- fix spm
+
 # Release 0.7.6
 
 - fix spm
