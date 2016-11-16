@@ -1,3 +1,8 @@
+# Release 0.7.8
+
+- fix npackage
+- fix webpack
+
 # Release 0.7.7
 
 - fix spm
