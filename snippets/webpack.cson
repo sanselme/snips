@@ -14,7 +14,10 @@
 
     module.exports = {
       devtool: "inline-source-map",
-      resolve: {extensions: ["", ".js", ".vue"]},
+      resolve: {
+        extensions: ["", ".js", ".vue"],
+        alias: {vue: "vue/dist/vue"}
+      },
       entry: {bundle: PATHS.src},
       output: {
         path: PATHS.dist,
