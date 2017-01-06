@@ -16,11 +16,9 @@
   'Chart Metadata':
     'prefix': 'metadata'
     'body': '''
-    apiVersion: ${1:v1}
-    kind: $2
     metadata:
       namespace: {{ .Values.Namespace }}
-      name: '{{ template "Fullname" . }}-$3'
+      name: '{{ template "Fullname" . }}-$1'
       labels:
         app: {{ template "Fullname" . }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
