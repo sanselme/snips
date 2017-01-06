@@ -1,3 +1,7 @@
+# Release 0.8.0
+
+- add chart
+
 # Release 0.7.8
 
 - fix npackage
