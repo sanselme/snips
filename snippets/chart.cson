@@ -17,7 +17,9 @@
     'prefix': 'metadata'
     'body': '''
     metadata:
+      {{- if default "" .Values.Namespace }}
       namespace: {{ .Values.Namespace }}
+      {{- end }}
       name: '{{ template "Fullname" . }}-$1'
       labels:
         app: {{ template "Fullname" . }}

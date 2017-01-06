@@ -1,3 +1,7 @@
+# Release 0.8.2
+
+- fix chart
+
 # Release 0.8.1
 
 - update chart
