@@ -1,0 +1,67 @@
+'.source.yaml':
+  'Chart.yaml':
+    'prefix': 'chart'
+    'body': '''
+    name: $1
+    version: 0.0.1
+    description: Helm Chart for $1
+    keywords:
+    - $1
+    sources:
+    - ${2:https://git.interactive-fx.com/sanselme/$1}
+    maintainers:
+    - name: ${3:Schubert Anselme}
+      email: ${4:sanselme@icloud.com}
+    '''
+  'Chart Metadata':
+    'prefix': 'metadata'
+    'body': '''
+    apiVersion: ${1:v1}
+    kind: $2
+    metadata:
+      namespace: {{ .Values.Namespace }}
+      name: '{{ template "Fullname" . }}-$3'
+      labels:
+        app: {{ template "Fullname" . }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+      annotations:
+        helm.sh/created: {{ .Release.Time.Seconds | quote }}
+    '''
+  'Chart Secret':
+    'prefix': 'secret'
+    'body': '''
+    ${1:key}: {{ .Values.${2:Value} | b64enc | quote }}
+    '''
+
+'.text.html':
+  '_helpers.tpl':
+    'prefix': 'helpers'
+    'body': '''
+    {{/* vim: set filetype=mustache: */}}
+
+    {{/*
+    Expand the name of the chart.
+    */}}
+    {{- define "Name" -}}
+    {{- default .Chart.Name .Values.nameOverride | trunc 24 -}}
+    {{- end -}}
+
+    {{/*
+    Create a default fully qualified app name.
+    We truncate at 24 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+    */}}
+    {{- define "Fullname" -}}
+    {{- $Name := default .Chart.Name .Values.nameOverride -}}
+    {{- printf "%s-%s" .Release.Name $Name | trunc 24 -}}
+    {{- end -}}
+    '''
+
+'.text.plain':
+  'NOTES.txt':
+    'prefix': 'notes'
+    'body': '''
+    export POD_NAME=`kubectl get po --namespace {{ .Release.Namespace }} -l "app={{ template "Fullname" . }}" -o jsonpath="{.items[0].metadata.name}"`
+    echo POD_NAME: $POD_NAME
+    '''
