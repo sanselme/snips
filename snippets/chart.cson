@@ -4,7 +4,7 @@
     'body': '''
     name: $1
     version: 0.0.1
-    description: Helm Chart for $1
+    description: $1 Helm Chart for Kubernetes
     keywords:
     - $1
     sources:
@@ -21,14 +21,25 @@
       namespace: {{ .Values.Namespace }}
       {{- end }}
       name: '{{ template "Fullname" . }}-$1'
-      labels:
-        app: {{ template "Fullname" . }}
-        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-        release: {{ .Release.Name | quote }}
-        heritage: {{ .Release.Service | quote }}
-      annotations:
-        helm.sh/created: {{ .Release.Time.Seconds | quote }}
     '''
+
+  'Chart Labels':
+    'prefix': 'labels'
+    'body': '''
+    labels:
+      app: {{ template "Fullname" . }}
+      chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+      release: {{ .Release.Name | quote }}
+      heritage: {{ .Release.Service | quote }}
+    '''
+
+  'Chart Annotations':
+    'prefix': 'annotations'
+    'body': '''
+    annotations:
+      helm.sh/created: {{ .Release.Time.Seconds | quote }}
+    '''
+
   'Chart Secret':
     'prefix': 'secret'
     'body': '''
