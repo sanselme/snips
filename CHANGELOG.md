@@ -1,3 +1,7 @@
+# Release 0.8.4
+
+- change chart
+
 # Release 0.8.3
 
 - add readmechart
