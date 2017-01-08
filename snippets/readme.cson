@@ -36,7 +36,7 @@
     'body': '''
     # ${3:Chart Title}
 
-    Helm Chart for ${4:Chart Name}
+    ${4:Chart Name} Helm Chart for Kubernetes
 
     ## TL;DR
 
