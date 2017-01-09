@@ -13,6 +13,38 @@
     - name: ${3:Schubert Anselme}
       email: ${4:sanselme@icloud.com}
     '''
+
+  'values.yaml':
+    'prefix': '''values'''
+    'body': '''
+    Namespace: ${1:default}
+    Replicas: ${2:1}
+    FQDN: $3
+
+    Image:
+      PullPolicy: ${4:IfNotPresent}
+      Repository: $5
+      Tag: "${6:latest}"
+
+    Storage:
+      Enabled: true
+      Class: generic
+      AccessMode: ReadWriteOnce
+      Size: 100Mi
+
+    Ingress:
+      EnableLetsencrypt: ${7:false}
+      # Class: "${8:nginx}"
+
+    TLS:
+      CA: |
+        $9
+      Cert: |
+        $10
+      Key: |
+        $11
+    '''
+
   'Chart Metadata':
     'prefix': 'metadata'
     'body': '''
@@ -20,7 +52,7 @@
       {{- if default "" .Values.Namespace }}
       namespace: {{ .Values.Namespace }}
       {{- end }}
-      name: '{{ template "Fullname" . }}-$1'
+      name: {{ template "Fullname" . }}-$1
     '''
 
   'Chart Labels':
@@ -28,9 +60,9 @@
     'body': '''
     labels:
       app: {{ template "Fullname" . }}
-      chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-      release: {{ .Release.Name | quote }}
-      heritage: {{ .Release.Service | quote }}
+      chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
     '''
 
   'Chart Annotations':
@@ -40,11 +72,39 @@
       helm.sh/created: {{ .Release.Time.Seconds | quote }}
     '''
 
+  'Chart Image':
+    'prefix': 'image'
+    'body': '''{{ printf "%s:%s" .Values.Image.Repository .Values.Image.Tag }}'''
+
+  'Chart Images':
+    'prefix': 'images'
+    'body': '''{{ printf "%s:%s" .Values.Image.$1.Repository .Values.Image.$1.Tag }}'''
+
   'Chart Secret':
     'prefix': 'secret'
     'body': '''
     ${1:key}: {{ .Values.${2:Value} | b64enc | quote }}
     '''
+
+  'Formated Print':
+    'prefix': 'printf'
+    'body': '''{{ printf "$1" $2 }}'''
+
+  'Chart Fullname':
+    'prefix': 'fullname'
+    'body': '''{{ template "Fullname" . }}-$1'''
+
+  'To YAML':
+    'prefix': 'to_yaml'
+    'body': '''{{ toYaml .Values.$1 | indent $2 }}'''
+
+  'Include Labels':
+    'prefix': 'include_labels'
+    'body': '''{{ include "Labels" . | indent $1 }}'''
+
+  'Include Annotations':
+    'prefix': 'include_annotations'
+    'body': '''{{ include "Annotations" . | indent $1 }}'''
 
 '.text.html':
   '_helpers.tpl':
@@ -67,12 +127,24 @@
     {{- $Name := default .Chart.Name .Values.nameOverride -}}
     {{- printf "%s-%s" .Release.Name $Name | trunc 24 -}}
     {{- end -}}
+
+    {{- define "Labels" -}}
+    app: {{ template "Fullname" . }}
+    chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    {{- end -}}
+
+    {{- define "Annotations" -}}
+    helm.sh/created: {{ .Release.Time.Seconds | quote }}
+    {{- end -}}
     '''
 
 '.text.plain':
   'NOTES.txt':
     'prefix': 'notes'
     'body': '''
-    export POD_NAME=`kubectl get po --namespace {{ .Release.Namespace }} -l "app={{ template "Fullname" . }}" -o jsonpath="{.items[0].metadata.name}"`
-    echo POD_NAME: $POD_NAME
+    # Usage
+
+    use https://{{ .Values.$1 }} to access $2
     '''
