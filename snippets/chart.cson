@@ -125,7 +125,7 @@
 
   'To YAML':
     'prefix': 'to_yaml'
-    'body': '''{{ toYaml .Values.$1 | indent $2 -}}'''
+    'body': '''{{ toYaml .Values.$1 | indent $2 }}'''
 
   'Include Labels':
     'prefix': 'include_labels'
