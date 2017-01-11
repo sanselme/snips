@@ -45,6 +45,31 @@
         $11
     '''
 
+  'requirements.yaml':
+    'prefix': 'requirements'
+    'body': '''
+    dependencies:
+    - name: $1
+      version: $2
+      repository: $3
+    '''
+
+  'Chart Dependency':
+    'prefix': 'dependency'
+    'body': '''
+    - name: $1
+      version: $2
+      repository: $3
+    '''
+
+  'Chart Namespace':
+    'prefix': 'namespace'
+    'body': '''
+    {{- if default "" .Values.Namespace }}
+    namespace: {{ .Values.Namespace }}
+    {{- end }}
+    '''
+
   'Chart Metadata':
     'prefix': 'metadata'
     'body': '''
@@ -72,6 +97,10 @@
       helm.sh/created: {{ .Release.Time.Seconds | quote }}
     '''
 
+  'Chart Checksum Annotation':
+    'prefix': 'checksum'
+    'body': '''checksum/config: {{ include (print $.Chart.Name "/templates/${1:config}.yaml") . | sha256sum }}'''
+
   'Chart Image':
     'prefix': 'image'
     'body': '''{{ printf "%s:%s" .Values.Image.Repository .Values.Image.Tag }}'''
@@ -86,17 +115,17 @@
     ${1:key}: {{ .Values.${2:Value} | b64enc | quote }}
     '''
 
-  'Formated Print':
-    'prefix': 'printf'
-    'body': '''{{ printf "$1" $2 }}'''
-
   'Chart Fullname':
     'prefix': 'fullname'
     'body': '''{{ template "Fullname" . }}-$1'''
 
+  'Formated Print':
+    'prefix': 'printf'
+    'body': '''{{ printf "$1" $2 }}'''
+
   'To YAML':
     'prefix': 'to_yaml'
-    'body': '''{{ toYaml .Values.$1 | indent $2 }}'''
+    'body': '''{{ toYaml .Values.$1 | indent $2 -}}'''
 
   'Include Labels':
     'prefix': 'include_labels'
