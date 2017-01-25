@@ -77,25 +77,23 @@
 
     Parameter                   | Description                         | Default
     --------------------------- | ----------------------------------- | ---------------
-    `Namespace`                 | `namespace` of deployment           | `default`
-    `Replicas`                  | Number of replicas                  | `1`
-    `FQDN`                      | `fqdn` for `ingress`                |
-    `Image.PullPolicy`          | Image pull policy                   | `IfNotPresent`
-    `Image.Repository`          | `${4:chart-name}` image repository  |
-    `Image.Tag`                 | `${4:chart-name}` image tag         | `"latest"`
-    `Storage.Enabled`           | Enable `pvc` otherwise              | `true`
-    `Storage.Class`             | Class of `pvc` storage              | `generic`
-    `Storage.AccessMode`        | Access mode for `pvc`               | `ReadWriteOnce`
-    `Storage.Size`              | Size of `pvc`                       | `100Mi`
-    `Ingress.EnableLetsencrypt` | Enable `letsencrypt` tls generation | `false`
-    `Ingress.Class`             | `class` of `ingress-controller`     | `"nginx"`
+    `namespace`                 | `namespace` of deployment           | `default`
+    `replicas`                  | Number of replicas                  | `1`
+    `fqdn`                      | `fqdn` for `ingress`                |
+    `image.pullPolicy`          | Image pull policy                   | `IfNotPresent`
+    `image.repository`          | `${4:chart-name}` image repository  |
+    `image.tag`                 | `${4:chart-name}` image tag         | `"latest"`
+    `storage.enabled`           | Enable `pvc` otherwise              | `false`
+    `storage.class`             | Class of `pvc` storage              | `generic`
+    `storage.accessMode`        | Access mode for `pvc`               | `ReadWriteOnce`
+    `storage.size`              | Size of `pvc`                       | `100Mi`
+    `ingress.enableLetsencrypt` | Enable `letsencrypt` tls generation | `false`
+    `ingress.class`             | `class` of `ingress-controller`     | `"nginx"`
 
     Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
 
     ```bash
-    $ helm install --name my-release \
-    --set key=value,key=value \
-    ${4:chart-name}
+    $ helm install --name my-release --set namespace=default,replicas=1 ${4:chart-name}
     ```
 
     Alternatyvely, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example:
