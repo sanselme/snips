@@ -1,3 +1,13 @@
+# Releae 0.8.6
+
+- change chart
+- change readme
+
+# Releae 0.8.5
+
+- change chart
+- change readme
+
 # Release 0.8.4
 
 - change chart
