@@ -8,7 +8,7 @@
     keywords:
     - $1
     sources:
-    - ${2:https://git.interactive-fx.com/sanselme/$1}
+    - ${2:https://git.interactive-fx.com/helm/$1}
     maintainers:
     - name: ${3:Schubert Anselme}
       email: ${4:sanselme@icloud.com}
@@ -17,31 +17,31 @@
   'values.yaml':
     'prefix': '''values'''
     'body': '''
-    Namespace: ${1:default}
-    Replicas: ${2:1}
-    FQDN: $3
+    namespace: ${1:default}
+    replicas: ${2:1}
+    fqdn: $3
 
-    Image:
-      PullPolicy: ${4:IfNotPresent}
-      Repository: $5
-      Tag: "${6:latest}"
+    image:
+      pullPolicy: ${4:IfNotPresent}
+      repository: $5
+      tag: "${6:latest}"
 
-    Storage:
-      Enabled: true
-      Class: generic
-      AccessMode: ReadWriteOnce
-      Size: 100Mi
+    storage:
+      enabled: false
+      class: generic
+      accessMode: ReadWriteOnce
+      size: 100Mi
 
-    Ingress:
-      EnableLetsencrypt: ${7:false}
-      # Class: "${8:nginx}"
+    ingress:
+      enableLetsencrypt: ${7:false}
+      # class: "${8:nginx}"
 
-    TLS:
-      CA: |
+    tls:
+      ca: |
         $9
-      Cert: |
+      cert: |
         $10
-      Key: |
+      key: |
         $11
     '''
 
@@ -65,8 +65,8 @@
   'Chart Namespace':
     'prefix': 'namespace'
     'body': '''
-    {{- if default "" .Values.Namespace }}
-    namespace: {{ .Values.Namespace }}
+    {{- if default "" .Values.namespace }}
+    namespace: {{ .Values.namespace }}
     {{- end }}
     '''
 
@@ -74,17 +74,17 @@
     'prefix': 'metadata'
     'body': '''
     metadata:
-      {{- if default "" .Values.Namespace }}
-      namespace: {{ .Values.Namespace }}
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
       {{- end }}
-      name: {{ template "Fullname" . }}-$1
+      name: {{ template "fullname" . }}
     '''
 
   'Chart Labels':
     'prefix': 'labels'
     'body': '''
     labels:
-      app: {{ template "Fullname" . }}
+      app: {{ template "fullname" . }}
       chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
       release: {{ .Release.Name }}
       heritage: {{ .Release.Service }}
@@ -99,25 +99,25 @@
 
   'Chart Checksum Annotation':
     'prefix': 'checksum'
-    'body': '''checksum/config: {{ include (print $.Chart.Name "/templates/${1:config}.yaml") . | sha256sum }}'''
+    'body': '''checksum/config: {{ include (print $.Chart.Name "/templates/${1:configmap}.yaml") . | sha256sum }}'''
 
   'Chart Image':
     'prefix': 'image'
-    'body': '''{{ printf "%s:%s" .Values.Image.Repository .Values.Image.Tag }}'''
+    'body': '''{{ printf "%s:%s" .Values.image.repository .Values.image.tag }}'''
 
   'Chart Images':
     'prefix': 'images'
-    'body': '''{{ printf "%s:%s" .Values.Image.$1.Repository .Values.Image.$1.Tag }}'''
+    'body': '''{{ printf "%s:%s" .Values.$1.image.repository .Values.$1.image.tag }}'''
 
   'Chart Secret':
     'prefix': 'secret'
     'body': '''
-    ${1:key}: {{ .Values.${2:Value} | b64enc | quote }}
+    ${1:key}: {{ .Values.${2:value} | b64enc | quote }}
     '''
 
   'Chart Fullname':
     'prefix': 'fullname'
-    'body': '''{{ template "Fullname" . }}-$1'''
+    'body': '''{{ template "fullname" . }}'''
 
   'Formated Print':
     'prefix': 'printf'
@@ -129,11 +129,11 @@
 
   'Include Labels':
     'prefix': 'include_labels'
-    'body': '''{{ include "Labels" . | indent $1 }}'''
+    'body': '''{{ include "labels" . | indent $1 }}'''
 
   'Include Annotations':
     'prefix': 'include_annotations'
-    'body': '''{{ include "Annotations" . | indent $1 }}'''
+    'body': '''{{ include "annotations" . | indent $1 }}'''
 
 '.text.html':
   '_helpers.tpl':
@@ -144,7 +144,7 @@
     {{/*
     Expand the name of the chart.
     */}}
-    {{- define "Name" -}}
+    {{- define "name" -}}
     {{- default .Chart.Name .Values.nameOverride | trunc 24 -}}
     {{- end -}}
 
@@ -152,19 +152,19 @@
     Create a default fully qualified app name.
     We truncate at 24 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
     */}}
-    {{- define "Fullname" -}}
-    {{- $Name := default .Chart.Name .Values.nameOverride -}}
-    {{- printf "%s-%s" .Release.Name $Name | trunc 24 -}}
+    {{- define "fullname" -}}
+    {{- $name := default .Chart.Name .Values.nameOverride -}}
+    {{- printf "%s-%s" .Release.Name $name | trunc 24 -}}
     {{- end -}}
 
-    {{- define "Labels" -}}
-    app: {{ template "Fullname" . }}
+    {{- define "labels" -}}
+    app: {{ template "fullname" . }}
     chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     {{- end -}}
 
-    {{- define "Annotations" -}}
+    {{- define "annotations" -}}
     helm.sh/created: {{ .Release.Time.Seconds | quote }}
     {{- end -}}
     '''
@@ -175,5 +175,5 @@
     'body': '''
     # Usage
 
-    use https://{{ .Values.$1 }} to access $2
+    use https://{{ .Values.fqdn }} to access $1
     '''
