@@ -1,3 +1,7 @@
+# Release 0.9.4
+
+- change chart
+
 # Releae 0.8.6
 
 - change chart
