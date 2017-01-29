@@ -1,0 +1,74 @@
+'.source.yaml':
+  'DaemonSet':
+    'prefix': 'ds'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: DaemonSet
+    metadata:
+      namespace: ${1:default}
+      name: $2
+    spec:
+      template:
+        metadata:
+          labels:
+            app: $3
+        spec:
+          containers:
+          - name: $2
+            image: $4:${5:latest}
+            imagePullPolicy: ${6:IfNotPresent}
+            resources:
+              requests:
+                memory: ${7:128Mi}
+                cpu: ${8:100m}
+            livenessProbe:
+              initialDelaySeconds: ${9:30}
+              timeoutSeconds: ${10:10}
+              $11:
+                $12: $13
+            readinessProbe:
+              initialDelaySeconds: ${10:10}
+              timeoutSeconds: ${14:5}
+              $11:
+                $12: $13
+            ports:
+            - containerPort: $15
+    '''
+
+  'Helm Chart DaemonSet':
+    'prefix': 'hc-ds'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: DaemonSet
+    metadata:
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
+      {{- end }}
+      name: {{ template "fullname" . }}
+    spec:
+      template:
+        metadata:
+          labels:
+    {{ include "labels" . | indent 8 }}
+          annotations:
+    {{ include "annotations" . | indent 8 }}
+        spec:
+          containers:
+          - name: {{ .Chart.Name }}
+            image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            resources:
+    {{ toYaml .Values.resources | trim | indent 10 }}
+            livenessProbe:
+              initialDelaySeconds: ${1:30}
+              timeoutSeconds: ${2:10}
+              $3:
+                $4: $5
+            readinessProbe:
+              initialDelaySeconds: ${2:10}
+              timeoutSeconds: ${6:5}
+              $3:
+                $4: $5
+            ports:
+            - containerPort: $7
+    '''

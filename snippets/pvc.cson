@@ -1,0 +1,43 @@
+'.source.yaml':
+  'PersistentVolumeClaim':
+    'prefix': 'pvc'
+    'body': '''
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      namespace: ${1:default}
+      name: $2
+    spec:
+      accessModes:
+      - $3
+      resources:
+        requests:
+          storage: $4
+    '''
+
+  'Helm Chart PersistentVolumeClaim':
+    'prefix': 'hc-pvc'
+    'body': '''
+    {{- if .Values.storage.enabled }}
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
+      {{- end }}
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+        {{- if .Values.storage.class }}
+        volume.alpha.kubernetes.io/storage-class: {{ .Values.storage.class | quote }}
+        {{- end }}
+    spec:
+      accessModes:
+      - {{ .Values.storage.mode }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.size | quote }}
+    {{- end }}
+    '''

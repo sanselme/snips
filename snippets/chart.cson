@@ -20,29 +20,26 @@
     namespace: ${1:default}
     replicas: ${2:1}
     fqdn: $3
-
     image:
       pullPolicy: ${4:IfNotPresent}
       repository: $5
       tag: "${6:latest}"
-
     storage:
       enabled: false
       class: generic
-      accessMode: ReadWriteOnce
+      mode: ReadWriteOnce
       size: 100Mi
-
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
     ingress:
-      enableLetsencrypt: ${7:false}
+      acme: ${7:false}
       # class: "${8:nginx}"
-
     tls:
-      ca: |
-        $9
-      cert: |
-        $10
-      key: |
-        $11
+      ca: $9
+      cert: $10
+      key: $11
     '''
 
   'requirements.yaml':
@@ -110,7 +107,7 @@
     'body': '''{{ printf "%s:%s" .Values.$1.image.repository .Values.$1.image.tag }}'''
 
   'Chart Secret':
-    'prefix': 'secret'
+    'prefix': 'secret-data'
     'body': '''
     ${1:key}: {{ .Values.${2:value} | b64enc | quote }}
     '''
@@ -125,7 +122,7 @@
 
   'To YAML':
     'prefix': 'to_yaml'
-    'body': '''{{ toYaml .Values.$1 | indent $2 }}'''
+    'body': '''{{ toYaml .Values.$1 | trim | indent $2 }}'''
 
   'Include Labels':
     'prefix': 'include_labels'

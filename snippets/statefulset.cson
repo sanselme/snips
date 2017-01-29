@@ -1,0 +1,100 @@
+'.source.yaml':
+  'StatefulSet':
+    'prefix': 'statefulset'
+    'body': '''
+    apiVersion: apps/v1beta1
+    kind: StatefulSet
+    metadata:
+      namespace: ${1:default}
+      name: $2
+    spec:
+      replicas: ${3:1}
+      serviceName: $4
+      template:
+        metadata:
+          labels:
+            app: $5
+          annotations:
+            pod.alpha.kubernetes.io/initialized: "true"
+        spec:
+          terminationGracePeriodSeconds: ${6:0}
+          volumes:
+          - name: $2
+            emptyDir: {}
+          containers:
+          - name: $2
+            image: $7:${8:latest}
+            imagePullPolicy: ${9:IfNotPresent}
+            livenessProbe:
+              initialDelaySeconds: ${10:30}
+              timeoutSeconds: ${11:10}
+              $12:
+                $13: $14
+            readinessProbe:
+              initialDelaySeconds: ${11:10}
+              timeoutSeconds: ${15:5}
+              $12:
+                $13: $14
+            resources:
+              requests:
+                memory: ${16:128Mi}
+                cpu: ${17:100m}
+            ports:
+            - containerPort: $18
+            volumeMounts:
+            - name: $2
+              mountPath: $19
+    '''
+
+  'Helm Chart StatefulSet':
+    'prefix': 'hc-statefulset'
+    'body': '''
+    apiVersion: apps/v1beta1
+    kind: StatefulSet
+    metadata:
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
+      {{- end }}
+      name: {{ template "fullname" . }}
+    spec:
+      replicas: {{ .Values.replicas }}
+      serviceName: {{ template "fullname" . }}
+      template:
+        metadata:
+          labels:
+    {{ include "labels" . | indent 8 }}
+          annotations:
+    {{ include "annotations" . | indent 8 }}
+            pod.alpha.kubernetes.io/initialized: "true"
+        spec:
+          terminationGracePeriodSeconds: ${1:0}
+          volumes:
+          - name: {{ template "fullname" . }}
+            {{- if .Values.storage.enabled }}
+            persistentVolumeClaim:
+              claimName: {{ template "fullname" . }}
+            {{- else }}
+            emptyDir: {}
+            {{- end }}
+          containers:
+          - name: {{ .Chart.Name }}
+            image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+            imagePullPolicy: {{ .Values.imagePullPolicy }}
+            livenessProbe:
+              initialDelaySeconds: ${2:30}
+              timeoutSeconds: ${3:10}
+              $4:
+                $5: $6
+            readinessProbe:
+              initialDelaySeconds: ${3:10}
+              timeoutSeconds: ${7:5}
+              $4:
+                $5: $6
+            resources:
+    {{ toYaml .Values.resources | trim | indent 10 }}
+            ports:
+            - containerPort: $8
+            volumeMounts:
+            - name: {{ template "fullname" . }}
+              mountPath: $9
+    '''
