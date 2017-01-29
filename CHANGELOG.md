@@ -1,3 +1,7 @@
+# Release 0.11.1
+
+- update chart
+
 # Release 0.10.0
 
 - add configmap
