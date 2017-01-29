@@ -23,23 +23,23 @@
     image:
       pullPolicy: ${4:IfNotPresent}
       repository: $5
-      tag: "${6:latest}"
+      tag: ${6:latest}
     storage:
       enabled: false
-      class: generic
+      # class: generic
       mode: ReadWriteOnce
-      size: 100Mi
+      size: ${7:100Mi}
     resources:
       requests:
-        memory: 128Mi
-        cpu: 100m
+        memory: ${8:128Mi}
+        cpu: ${9:100m}
     ingress:
-      acme: ${7:false}
-      # class: "${8:nginx}"
+      acme: ${10:false}
+      # class: "${11:nginx}"
     tls:
-      ca: $9
-      cert: $10
-      key: $11
+      ca: $12
+      cert: $13
+      key: $14
     '''
 
   'requirements.yaml':
