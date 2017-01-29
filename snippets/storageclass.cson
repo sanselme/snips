@@ -1,0 +1,33 @@
+'.source.yaml':
+  'StorageClass':
+    'prefix': 'storageclass'
+    'body': '''
+    apiVersion: storage.k8s.io/v1beta1
+    kind: StorageClass
+    metadata:
+      namespace: ${1:default}
+      name: $2
+      annotations:
+        storageclass.beta.kubernetes.io/is-default-class: ${3:"false"}
+    provisioner: kubernetes/$2
+    '''
+
+  'Helm Chart StorageClass':
+    'prefix': 'hc-storageclass'
+    'body': '''
+    apiVersion: storage.k8s.io/v1beta1
+    kind: StorageClass
+    metadata:
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
+      {{- end }}
+      name: {{ .Values.storage.class }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+        {{- if .Values.storage.default }}
+        storageclass.beta.kubernetes.io/is-default-class: {{ .Values.storage.default | quote }}
+        {{- end }}
+    provisioner: {{ .Values.storage.provisioner }}
+    '''

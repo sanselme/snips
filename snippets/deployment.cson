@@ -1,0 +1,76 @@
+'.source.yaml':
+  'Deployment':
+    'prefix': 'deploy'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      namespace: ${1:default}
+      name: $2
+    spec:
+      replicas: ${3:0}
+      template:
+        metadata:
+          labels:
+            app: $4
+        spec:
+          containers:
+          - name: $2
+            image: $5:${6:latest}
+            imagePullPolicy: ${7:IfNotPresent}
+            resources:
+              requests:
+                memory: ${8:128Mi}
+                cpu: ${9:100m}
+            livenessProbe:
+              initialDelaySeconds: ${10:30}
+              timeoutSeconds: ${11:10}
+              $12:
+                $13: $14
+            readinessProbe:
+              initialDelaySeconds: ${10:10}
+              timeoutSeconds: ${15:5}
+              $12:
+                $13: $14
+            ports:
+            - containerPort: $16
+    '''
+
+  'Helm Chart Deployment':
+    'prefix': 'hc-deploy'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
+      {{- end }}
+      name: {{ template "fullname" . }}
+    spec:
+      replicas: {{ .Values.replicas }}
+      template:
+        metadata:
+          labels:
+    {{ include "labels" . | indent 8 }}
+          annotations:
+    {{ include "annotations" . | indent 8 }}
+        spec:
+          containers:
+          - name: {{ .Chart.Name }}
+            image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            resources:
+    {{ toYaml .Values.resources | trim | indent 10 }}
+            livenessProbe:
+              initialDelaySeconds: ${1:30}
+              timeoutSeconds: ${2:10}
+              $3:
+                $4: $5
+            readinessProbe:
+              initialDelaySeconds: ${2:10}
+              timeoutSeconds: ${6:5}
+              $3:
+                $4: $5
+            ports:
+            - containerPort: $7
+    '''

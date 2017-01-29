@@ -1,3 +1,18 @@
+# Release 0.10.0
+
+- add configmap
+- add daemonset
+- add deployment
+- add ingress
+- add pvc
+- add secret
+- add service
+- add statefulset
+- add storageclass
+- update chart
+- update legal
+- update readme
+
 # Release 0.9.4
 
 - change chart
