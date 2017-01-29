@@ -1,0 +1,38 @@
+'.source.yaml':
+  'Service':
+    'prefix': 'svc'
+    'body': '''
+    apiVersion: v1
+    kind: Service
+    metadata:
+      namespace: ${1:default}
+      name: $2
+    spec:
+      selector:
+        app: $3
+      ports:
+      - name: $4
+        port: $5
+    '''
+
+  'Helm Chart Service':
+    'prefix': 'hc-svc'
+    'body': '''
+    apiVersion: v1
+    kind: Service
+    metadata:
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
+      {{- end }}
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+    spec:
+      selector:
+        app: {{ template "fullname" . }}
+      ports:
+      - name: $1
+        port: $2
+    '''

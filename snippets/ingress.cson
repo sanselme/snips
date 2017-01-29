@@ -1,0 +1,55 @@
+'.source.yaml':
+  'Ingress':
+    'prefix': 'ingress'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      namespace: ${1:default}
+      name: $2
+    spec:
+      tls:
+      - secretName: $3
+        hosts:
+        - $4
+      rules:
+      - host: $4
+        http:
+          paths:
+          - backend:
+              serviceName: $5
+              servicePort: $6
+    '''
+
+  'Helm Chart Ingress':
+    'prefix': 'hc-ingress'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      {{- if default "" .Values.namespace }}
+      namespace: {{ .Values.namespace }}
+      {{- end }}
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+        {{- if .Values.ingress.acme }}
+        kubernetes.io/tls-acme: "true"
+        {{- end }}
+        kubernetes.io/ingress.class: {{ default "nginx" .Values.ingress.class }}
+        checksum/config: {{ include (print $.Chart.Name "/templates/tls-secret.yaml") . | sha256sum }}
+    spec:
+      tls:
+      - secretName: {{ template "fullname" . }}-tls
+        hosts:
+        - {{ .Values.fqdn }}
+      rules:
+      - host: {{ .Values.fqdn }}
+        http:
+          paths:
+          - backend:
+              serviceName: {{ template "fullname" . }}
+              servicePort: $1
+    '''
