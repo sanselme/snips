@@ -17,29 +17,22 @@
   'values.yaml':
     'prefix': '''values'''
     'body': '''
-    namespace: ${1:default}
-    replicas: ${2:1}
-    fqdn: $3
     image:
-      pullPolicy: ${4:IfNotPresent}
-      repository: $5
-      tag: ${6:latest}
+      repository: $1
+      tag: ${2:latest}
     storage:
-      enabled: false
-      # class: generic
       mode: ReadWriteOnce
-      size: ${7:100Mi}
+      size: ${3:100Mi}
     resources:
       requests:
-        memory: ${8:128Mi}
-        cpu: ${9:100m}
+        memory: ${4:128Mi}
+        cpu: ${5:100m}
     ingress:
-      acme: ${10:false}
-      # class: "${11:nginx}"
+      acme: ${6:false}
     tls:
-      ca: $12
-      cert: $13
-      key: $14
+      ca: $7
+      cert: $8
+      key: $9
     '''
 
   'requirements.yaml':
@@ -62,20 +55,12 @@
   'Chart Namespace':
     'prefix': 'namespace'
     'body': '''
-    {{- if default "" .Values.namespace }}
-    namespace: {{ .Values.namespace }}
-    {{- end }}
+    namespace: {{ default "kube-system" .Values.namespace }}
     '''
 
-  'Chart Metadata':
-    'prefix': 'metadata'
-    'body': '''
-    metadata:
-      {{- if default "" .Values.namespace }}
-      namespace: {{ .Values.namespace }}
-      {{- end }}
-      name: {{ template "fullname" . }}
-    '''
+  'Chart Fullname':
+    'prefix': 'fullname'
+    'body': '''{{ template "fullname" . }}'''
 
   'Chart Labels':
     'prefix': 'labels'
@@ -85,13 +70,6 @@
       chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
       release: {{ .Release.Name }}
       heritage: {{ .Release.Service }}
-    '''
-
-  'Chart Annotations':
-    'prefix': 'annotations'
-    'body': '''
-    annotations:
-      helm.sh/created: {{ .Release.Time.Seconds | quote }}
     '''
 
   'Chart Checksum Annotation':
@@ -109,12 +87,8 @@
   'Chart Secret':
     'prefix': 'secret-data'
     'body': '''
-    ${1:key}: {{ .Values.${2:value} | b64enc | quote }}
+    ${1:key}: {{ .Values.$2 | b64enc | quote }}
     '''
-
-  'Chart Fullname':
-    'prefix': 'fullname'
-    'body': '''{{ template "fullname" . }}'''
 
   'Formated Print':
     'prefix': 'printf'
@@ -123,14 +97,6 @@
   'To YAML':
     'prefix': 'to_yaml'
     'body': '''{{ toYaml .Values.$1 | trim | indent $2 }}'''
-
-  'Include Labels':
-    'prefix': 'include_labels'
-    'body': '''{{ include "labels" . | indent $1 }}'''
-
-  'Include Annotations':
-    'prefix': 'include_annotations'
-    'body': '''{{ include "annotations" . | indent $1 }}'''
 
 '.text.html':
   '_helpers.tpl':
@@ -170,7 +136,5 @@
   'NOTES.txt':
     'prefix': 'notes'
     'body': '''
-    # Usage
-
-    use https://{{ .Values.fqdn }} to access $1
+    https://{{ .Values.fqdn }}
     '''
