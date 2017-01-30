@@ -1,4 +1,12 @@
+# Release 0.11.1
+
+- add vagrant
+
+# Release 0.11.0
+
 # Release 0.10.2
+
+- update chart
 
 # Release 0.10.1
 
