@@ -1,3 +1,15 @@
+# Release 0.11.2
+
+- update configmap
+- update daemonset
+- update deployment
+- update ingress
+- update pvc
+- update secret
+- update service
+- update statefulset
+- update storageclass
+
 # Release 0.11.1
 
 - add vagrant

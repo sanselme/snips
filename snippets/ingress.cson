@@ -5,20 +5,19 @@
     apiVersion: extensions/v1beta1
     kind: Ingress
     metadata:
-      namespace: ${1:default}
-      name: $2
+      name: $1
     spec:
       tls:
-      - secretName: $3
+      - secretName: $2
         hosts:
-        - $4
+        - $3
       rules:
-      - host: $4
+      - host: $3
         http:
           paths:
           - backend:
-              serviceName: $5
-              servicePort: $6
+              serviceName: $4
+              servicePort: $5
     '''
 
   'Helm Chart Ingress':
@@ -27,9 +26,6 @@
     apiVersion: extensions/v1beta1
     kind: Ingress
     metadata:
-      {{- if default "" .Values.namespace }}
-      namespace: {{ .Values.namespace }}
-      {{- end }}
       name: {{ template "fullname" . }}
       labels:
     {{ include "labels" . | indent 4 }}
@@ -42,7 +38,7 @@
         checksum/config: {{ include (print $.Chart.Name "/templates/tls-secret.yaml") . | sha256sum }}
     spec:
       tls:
-      - secretName: {{ template "fullname" . }}-tls
+      - secretName: {{ printf "%s-%s" (template "fullname" .) "tls" }}
         hosts:
         - {{ .Values.fqdn }}
       rules:
