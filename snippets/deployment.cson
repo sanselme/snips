@@ -5,35 +5,30 @@
     apiVersion: extensions/v1beta1
     kind: Deployment
     metadata:
-      namespace: ${1:default}
-      name: $2
+      name: $1
     spec:
-      replicas: ${3:0}
+      replicas: ${2:1}
       template:
         metadata:
           labels:
-            app: $4
+            app: $3
         spec:
           containers:
-          - name: $2
-            image: $5:${6:latest}
-            imagePullPolicy: ${7:IfNotPresent}
+          - name: $1
+            image: $4:${5:latest}
+            imagePullPolicy: ${6:IfNotPresent}
             resources:
               requests:
-                memory: ${8:128Mi}
-                cpu: ${9:100m}
-            livenessProbe:
-              initialDelaySeconds: ${10:30}
-              timeoutSeconds: ${11:10}
-              $12:
-                $13: $14
-            readinessProbe:
-              initialDelaySeconds: ${10:10}
-              timeoutSeconds: ${15:5}
-              $12:
-                $13: $14
+                memory: ${7:128Mi}
+                cpu: ${8:100m}
+            # livenessProbe:
+            #   initialDelaySeconds: ${9:30}
+            #   timeoutSeconds: ${10:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${10:10}
+            #   timeoutSeconds: ${11:5}
             ports:
-            - containerPort: $16
+            - containerPort: $12
     '''
 
   'Helm Chart Deployment':
@@ -42,12 +37,9 @@
     apiVersion: extensions/v1beta1
     kind: Deployment
     metadata:
-      {{- if default "" .Values.namespace }}
-      namespace: {{ .Values.namespace }}
-      {{- end }}
       name: {{ template "fullname" . }}
     spec:
-      replicas: {{ .Values.replicas }}
+      replicas: {{ default 1 .Values.replicas }}
       template:
         metadata:
           labels:
@@ -58,19 +50,15 @@
           containers:
           - name: {{ .Chart.Name }}
             image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
-            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            imagePullPolicy: {{ default "IfNotPresent" .Values.image.pullPolicy }}
             resources:
     {{ toYaml .Values.resources | trim | indent 10 }}
-            livenessProbe:
-              initialDelaySeconds: ${1:30}
-              timeoutSeconds: ${2:10}
-              $3:
-                $4: $5
-            readinessProbe:
-              initialDelaySeconds: ${2:10}
-              timeoutSeconds: ${6:5}
-              $3:
-                $4: $5
+            # livenessProbe:
+            #   initialDelaySeconds: ${1:30}
+            #   timeoutSeconds: ${2:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${2:10}
+            #   timeoutSeconds: ${3:5}
             ports:
-            - containerPort: $7
+            - containerPort: $4
     '''
