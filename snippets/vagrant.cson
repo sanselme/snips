@@ -13,10 +13,54 @@
       config.ssh.forward_agent = true
       config.ssh.forward_x11 = true
 
+      config.vm.define name: "${2:node}" do |node|
+        node.vm.hostname = "name"
+        node.vm.network "private_network", ip: "${3:192.168.99.101}"
+        # node.vm.network "public_network", bridge: ${4:"en0: Wi-Fi (AirPort)"}
+      end
+
+      config.vm.box = "${5:ubuntu/xenial}"
+
+      config.vm.provider "virtualbox" do |vb|
+        vb.gui = false
+
+        vb.memory = "${6:1024}"
+        vb.cpus = ${7:2}
+
+        vb.linked_clone = false
+      end
+
+      config.vm.provision "shell" do |s|
+        ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+        s.inline = <<-SHELL
+          mkdir -p /root/.ssh
+          echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+
+          ifconfig | awk '\\$1 ~ /inet$/ { print \\$2 }' | awk '\\$1 !~ /127.0.0.1/'
+        SHELL
+      end
+    end
+    '''
+
+  'Vagrantfile - Multi':
+    'prefix': 'vagrantfile-multi'
+    'body': '''
+    # -*- mode: ruby -*-
+    # vi: set ft=ruby :
+
+    # All Vagrant configuration is done below. The "2" in Vagrant.configure
+    # configures the configuration version (we support older styles for
+    # backwards compatibility). Please don't change it unless you know what
+    # you're doing.
+    Vagrant.configure("2") do |config|
+      config.ssh.forward_agent = true
+      config.ssh.forward_x11 = true
+
       (1..${1:1}).each do |i|
         config.vm.define name: "${2:node}-#{i}" do |node|
           node.vm.hostname = "name"
-          node.vm.network "private_network", ip: "${3:192.168.99.0}.#{i + ${4:100}}"
+          node.vm.network "private_network", ip: "${3:192.168.99}.#{i + ${4:100}}"
           # node.vm.network "public_network", bridge: ${5:"en0: Wi-Fi (AirPort)"}
         end
       end
