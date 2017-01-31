@@ -1,0 +1,70 @@
+'.source.terraform':
+  'Terraform - Packet':
+    'prefix': 'tf-packet'
+    'body': '''
+    provider "packet" {
+      auth_token = "${1:PACKET_AUTH_TOKEN}"
+    }
+
+    resource "packet_ssh_key" "${2:key1}" {
+      name = "${2:key1}"
+      public_key = "${3:\$\{file("~/.ssh/id_rsa.pub"\)\}}"
+    }
+
+    resource "packet_project" "${4:my_project}" {
+      name = "${4:my_project}"
+      # payment_method = "${5:PAYMENT_METHOD_ID}"
+    }
+
+    resource "packet_device" "${6:my_device}" {
+      hostname = "${6:my_device}"
+      plan = "${7:baremetal_0}"
+      facility = "${10:ewr1}"
+      operating_system = "${11:coreos_stable}"
+      billing_cycle = "${12:hourly}"
+      project_id = "\$\{packet_project.${4:my_project}.id\}"
+      user_data = "$13"
+    }
+
+    resource "packet_volume" "${14:volume1}" {
+      facility = "${10:ewr1}"
+      project_id = "\$\{packet_project.${4:my_project}.id\}"
+      plan = "${15:storage_1}"
+      size = ${16:100}
+      billing_cycle = "${12:hourly}"
+      snapshot_policies = \{ snapshot_frequency = "${19:1day}", snapshot_count = ${20:7} \}
+    }
+    '''
+
+  'Terraform - VSphere':
+    'prefix': 'tf-vsphere'
+    'body': '''
+    provider "vsphere" {
+      user = "${1:username}"
+      password = "${2:password}"
+      vsphere_server = "${3:server}"
+      allow_unverified_ssl = ${4:true}
+    }
+
+    resource " vsphere_virtual_machine" "${5:my_machine}" {
+      name = "${5:my_machine}"
+      memory = ${6:1024}
+      vcpu = ${7:2}
+
+      linked_clone = false
+
+      network_interface {
+        label = "${8:VM Network}"
+      }
+
+      disk {
+        template = "${9:coreos_stable}"
+      }
+    }
+
+    resource "vsphere_virtual_disk" "${10:my_disk}" {
+      size = ${11:2}
+      vmdk_path = "${10:my_disk}"
+      type = "thin"
+    }
+    '''

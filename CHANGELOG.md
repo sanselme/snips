@@ -1,3 +1,8 @@
+# Release 0.11.4
+
+- add terraform
+- update vagrant
+
 # Release 0.11.2
 
 - update configmap
