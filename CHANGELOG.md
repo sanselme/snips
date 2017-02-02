@@ -1,3 +1,8 @@
+# Release 0.11.5
+
+- update vagrant
+- update terraform
+
 # Release 0.11.4
 
 - add terraform

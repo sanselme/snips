@@ -13,13 +13,14 @@
       config.ssh.forward_agent = true
       config.ssh.forward_x11 = true
 
-      config.vm.define name: "${2:node}" do |node|
-        node.vm.hostname = "name"
+      config.vm.define name = "${2:node}" do |node|
+        node.vm.hostname = name
         node.vm.network "private_network", ip: "${3:192.168.99.101}"
         # node.vm.network "public_network", bridge: ${4:"en0: Wi-Fi (AirPort)"}
       end
 
-      config.vm.box = "${5:ubuntu/xenial}"
+      config.vm.box = "${5:ubuntu/xenial64}"
+      # config.vm.synced_folder "~/", "/Users/$8"
 
       config.vm.provider "virtualbox" do |vb|
         vb.gui = false
@@ -34,9 +35,13 @@
         ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
 
         s.inline = <<-SHELL
-          mkdir -p /root/.ssh
-          echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+          useradd -m -s /bin/bash -G sudo $8
+          su $8 -c "mkdir -p ~/.ssh"
 
+          echo "$8 ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$8
+          su $8 -c "echo #{ssh_pub_key} >> ~/.ssh/authorized_keys"
+
+          chmod 0440 /etc/sudoers.d/$8
           ifconfig | awk '\\$1 ~ /inet$/ { print \\$2 }' | awk '\\$1 !~ /127.0.0.1/'
         SHELL
       end
@@ -58,14 +63,15 @@
       config.ssh.forward_x11 = true
 
       (1..${1:1}).each do |i|
-        config.vm.define name: "${2:node}-#{i}" do |node|
-          node.vm.hostname = "name"
+        config.vm.define name = "${2:node}-#{i}" do |node|
+          node.vm.hostname = name
           node.vm.network "private_network", ip: "${3:192.168.99}.#{i + ${4:100}}"
           # node.vm.network "public_network", bridge: ${5:"en0: Wi-Fi (AirPort)"}
         end
       end
 
-      config.vm.box = "${6:ubuntu/xenial}"
+      config.vm.box = "${6:ubuntu/xenial64}"
+      # config.vm.synced_folder "~/", "/Users/$9"
 
       config.vm.provider "virtualbox" do |vb|
         vb.gui = false
@@ -80,9 +86,13 @@
         ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
 
         s.inline = <<-SHELL
-          mkdir -p /root/.ssh
-          echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+          useradd -m -s /bin/bash -G sudo $9
+          su $9 -c "mkdir -p ~/.ssh"
 
+          echo "$9 ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$9
+          su $9 -c "echo #{ssh_pub_key} >> ~/.ssh/authorized_keys"
+
+          chmod 0440 /etc/sudoers.d/$9
           ifconfig | awk '\\$1 ~ /inet$/ { print \\$2 }' | awk '\\$1 !~ /127.0.0.1/'
         SHELL
       end
