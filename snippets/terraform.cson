@@ -17,7 +17,8 @@
     }
 
     resource "packet_device" "${6:my_device}" {
-      hostname = "${6:my_device}"
+      count = 1
+      hostname = "${format('${6:my_device}-%02d', count.index + 1)}"
       plan = "${7:baremetal_0}"
       facility = "${10:ewr1}"
       operating_system = "${11:coreos_stable}"
@@ -34,6 +35,11 @@
       billing_cycle = "${12:hourly}"
       snapshot_policies = \{ snapshot_frequency = "${19:1day}", snapshot_count = ${20:7} \}
     }
+
+    output "IPAddr" {
+      # value = "\\$\{element(packet_device.${6:my_device}.*.network_adapter.1.ipv4_address, 1)\}"
+      value = \\$\{element(packet_device.${6:my_device}.*.network_adapter.*.ipv4_address)\}
+    }
     '''
 
   'Terraform - VSphere':
@@ -47,7 +53,8 @@
     }
 
     resource " vsphere_virtual_machine" "${5:my_machine}" {
-      name = "${5:my_machine}"
+      count = 1
+      name = "${format('${5:my_machine}-%02d', count.index + 1)}"
       memory = ${6:1024}
       vcpu = ${7:2}
 
@@ -66,5 +73,95 @@
       size = ${11:2}
       vmdk_path = "${10:my_disk}"
       type = "thin"
+    }
+
+    output "IPAddr" {
+      # value = "\\$\{element(vsphere_virtual_machine.${5:my_machine}.*.network_adapter.1.ipv4_address, 1)\}"
+      value = \\$\{element(vsphere_virtual_machine.${5:my_machine}.*.network_adapter.*.ipv4_address)\}
+    }
+    '''
+
+  'Terraform - VritualBox':
+    'prefix': 'tf-vbox'
+    'body': '''
+    resource "virtualbox_vm" "${1:node}" {
+      count = ${2:1}
+      name = "${format('${1:node}-%02d', count.index + 1)}"
+
+      image = "${3:./ubuntu-16.04.tar.xz}"
+      cpus = ${4:2}
+      memory = "${5:1024mib}"
+
+      user_data = "${6:\\$\{file(./user_data)\}}"
+
+      network_adapter {
+        type = "${7:bridge}"
+        host_interface = "${8:en0}"
+      }
+    }
+
+    output "IPAddr" {
+      # value = "\\$\{element(virtualbox_vm.${1:node}.*.network_adapter.1.ipv4_address, 1)\}"
+      value = \\$\{element(virtualbox_vm.${1:node}.*.network_adapter.*.ipv4_address)\}
+    }
+    '''
+
+  'Terraform - VMware':
+    'prefix': 'tf-vix'
+    'body': '''
+    provider "vix" {
+      product = "${1:fusion}" # fusion, workstation, workstation_shared, player, server1, server2
+      verify_ssl = false
+      clone_type = "full" # full, linked
+    }
+
+    resource "vix_vswitch" "${2:vmnet10}" {
+      name = "${2:vmnet10}"
+      nat = true
+      dhcp = true
+      range = "${3:192.168.99.0/24}"
+      host_access = true
+    }
+
+    resource "vix_vm" "${4:core}" {
+      count = 1
+      name = "${format('${4:core}-%02d', count.index + 1)}"
+
+      cpus = ${5:1}
+      memory = "${6:1.0gib}" # kib, ki, mib, mi, gib or gi
+      upgrade_vhardware = false
+      tools_init_timeout = 30s
+
+      gui = false
+      sharedfolders = true
+
+      image {
+        url = "${7:https://github.com/c4milo/dobby-boxes/releases/download/stable/coreos-stable-vmware.box}"
+        checksum = "${8:545fec52ef3f35eee6e906fae8665abbad62d2007c7655ffa2ff4133ea3038b8}"
+        checksum_type = "${9:sha256}"
+        password = "$10"
+      }
+
+      network_adapter {
+        type = "${11:custom}" # "custom", "nat", "bridged" or "hostonly"
+        mac_address_type = "generated"
+        vswitch = \\$\{vix_vswitch.${2:vmnet10}.name\}
+        start_connected = true
+        driver = "vmxnet3"
+        wake_on_lan = false
+      }
+
+      shared_folder {
+        enable = ${12:false}
+        name = "${4:core}"
+        guest_path = "${13:/Users/sanselme}"
+        host_path = "${13:/Users/sanselme}"
+        readonly = ${14:false}
+      }
+    }
+
+    output "IPAddr" {
+      # value = "\\$\{element(vix_vm.${4:core}.*.network_adapter.1.ipv4_address, 1)\}"
+      value = \\$\{element(vix_vm.${4:core}.*.network_adapter.*.ipv4_address)\}
     }
     '''
