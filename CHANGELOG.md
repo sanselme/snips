@@ -1,3 +1,13 @@
+# Release 0.11.7
+
+- update chart
+- update ingress
+- update pvc
+- update readme
+- update secret
+- update statefulset
+- update vagrant
+
 # Release 0.11.5
 
 - update vagrant

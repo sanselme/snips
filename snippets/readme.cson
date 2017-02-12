@@ -77,17 +77,12 @@
 
     Parameter                   | Description                         | Default
     --------------------------- | ----------------------------------- | ---------------
-    `namespace`                 | `namespace` of deployment           | `default`
-    `replicas`                  | Number of replicas                  | `1`
-    `fqdn`                      | `fqdn` for `ingress`                |
-    `image.pullPolicy`          | Image pull policy                   | `IfNotPresent`
     `image.repository`          | `${4:chart-name}` image repository  |
     `image.tag`                 | `${4:chart-name}` image tag         | `"latest"`
-    `storage.enabled`           | Enable `pvc` otherwise              | `false`
     `storage.class`             | Class of `pvc` storage              | `generic`
-    `storage.accessMode`        | Access mode for `pvc`               | `ReadWriteOnce`
+    `storage.mode`              | Access mode for `pvc`               | `ReadWriteOnce`
     `storage.size`              | Size of `pvc`                       | `100Mi`
-    `ingress.enableLetsencrypt` | Enable `letsencrypt` tls generation | `false`
+    `ingress.acme`              | Enable `letsencrypt` tls generation | `false`
     `ingress.class`             | `class` of `ingress-controller`     | `"nginx"`
 
     Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
