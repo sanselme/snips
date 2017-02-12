@@ -117,7 +117,7 @@
     */}}
     {{- define "fullname" -}}
     {{- $name := default .Chart.Name .Values.nameOverride -}}
-    {{- printf "%s-%s" .Release.Name $name | trunc 24 -}}
+    {{- default .Release.Name $name | trunc 24 -}}
     {{- end -}}
 
     {{- define "labels" -}}
