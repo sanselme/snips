@@ -15,7 +15,8 @@
       - host: $3
         http:
           paths:
-          - backend:
+          - path: /
+            backend:
               serviceName: $4
               servicePort: $5
     '''
@@ -35,17 +36,17 @@
         kubernetes.io/tls-acme: "true"
         {{- end }}
         kubernetes.io/ingress.class: {{ default "nginx" .Values.ingress.class }}
-        checksum/config: {{ include (print $.Chart.Name "/templates/tls-secret.yaml") . | sha256sum }}
     spec:
       tls:
-      - secretName: {{ printf "%s-%s" (template "fullname" .) "tls" }}
+      - secretName: {{ template "fullname" . }}-tls
         hosts:
         - {{ .Values.fqdn }}
       rules:
       - host: {{ .Values.fqdn }}
         http:
           paths:
-          - backend:
+          - path:
+            backend:
               serviceName: {{ template "fullname" . }}
               servicePort: $1
     '''

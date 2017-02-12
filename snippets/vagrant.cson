@@ -20,7 +20,7 @@
       end
 
       config.vm.box = "${5:ubuntu/xenial64}"
-      # config.vm.synced_folder "~/", "/Users/$8"
+      # config.vm.synced_folder "~/", "/Users/$8", nfs: true, mount_options: ["noalock,ver=3,udp,noatime"]
 
       config.vm.provider "virtualbox" do |vb|
         vb.gui = false
@@ -71,7 +71,7 @@
       end
 
       config.vm.box = "${6:ubuntu/xenial64}"
-      # config.vm.synced_folder "~/", "/Users/$9"
+      # config.vm.synced_folder "~/", "/Users/$9", nfs: true, mount_options: ["noalock,ver=3,udp,noatime"]
 
       config.vm.provider "virtualbox" do |vb|
         vb.gui = false

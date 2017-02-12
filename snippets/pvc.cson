@@ -25,7 +25,7 @@
     {{ include "labels" . | indent 4 }}
       annotations:
     {{ include "annotations" . | indent 4 }}
-        volume.alpha.kubernetes.io/storage-class: {{ default "generic" .Values.storage.class | quote }}
+        volume.beta.kubernetes.io/storage-class: {{ default "generic" .Values.storage.class | quote }}
     spec:
       accessModes:
       - {{ .Values.storage.mode }}
