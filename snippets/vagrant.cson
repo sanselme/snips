@@ -13,37 +13,36 @@
       config.ssh.forward_agent = true
       config.ssh.forward_x11 = true
 
-      config.vm.define name = "${2:node}" do |node|
+      config.vm.define name = "${1:node}" do |node|
         node.vm.hostname = name
-        node.vm.network "private_network", ip: "${3:192.168.99.101}"
-        # node.vm.network "public_network", bridge: ${4:"en0: Wi-Fi (AirPort)"}
+        node.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"${6:, ip: "$7"}
       end
 
-      config.vm.box = "${5:ubuntu/xenial64}"
-      # config.vm.synced_folder "~/", "/Users/$8", nfs: true, mount_options: ["noalock,ver=3,udp,noatime"]
+      config.vm.box = "${3:centos/7}"
+      config.vm.synced_folder ".", "/vagrant ", disabled: true
 
       config.vm.provider "virtualbox" do |vb|
         vb.gui = false
 
-        vb.memory = "${6:1024}"
-        vb.cpus = ${7:2}
+        vb.memory = "${4:2048}"
+        vb.cpus = ${5:1}
 
         vb.linked_clone = false
       end
 
       config.vm.provision "shell" do |s|
-        ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-
         s.inline = <<-SHELL
-          useradd -m -s /bin/bash -G sudo $8
-          su $8 -c "mkdir -p ~/.ssh"
-
-          echo "$8 ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$8
-          su $8 -c "echo #{ssh_pub_key} >> ~/.ssh/authorized_keys"
-
-          chmod 0440 /etc/sudoers.d/$8
-          ifconfig | awk '\\$1 ~ /inet$/ { print \\$2 }' | awk '\\$1 !~ /127.0.0.1/'
+          yum install -y yum-utils net-tools epel-release
+          systemctl restart network
+          ifconfig | awk '\\$1 ~ /inet\\$/ { print \\$2 }' | awk '\\$1 !~ /127.0.0.1/'
         SHELL
+      end
+
+      config.vm.provision "ansible" do |ansible|
+        ansible.verbose = true
+        ansible.limit = "all"
+        ansible.playbook = "bootstrap.yaml"
+        ansible.inventory_path = "inventory.ini"
       end
     end
     '''
@@ -63,38 +62,37 @@
       config.ssh.forward_x11 = true
 
       (1..${1:1}).each do |i|
-        config.vm.define name = "${2:node}-#{i}" do |node|
+        config.vm.define name = "${2:node}" do |node|
           node.vm.hostname = name
-          node.vm.network "private_network", ip: "${3:192.168.99}.#{i + ${4:100}}"
-          # node.vm.network "public_network", bridge: ${5:"en0: Wi-Fi (AirPort)"}
+          node.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"${6:, ip: "$7.#\\{i + ${8:100}\\}"}
         end
       end
 
-      config.vm.box = "${6:ubuntu/xenial64}"
-      # config.vm.synced_folder "~/", "/Users/$9", nfs: true, mount_options: ["noalock,ver=3,udp,noatime"]
+      config.vm.box = "${3:centos/7}"
+      config.vm.synced_folder ".", "/vagrant ", disabled: true
 
       config.vm.provider "virtualbox" do |vb|
         vb.gui = false
 
-        vb.memory = "${7:1024}"
-        vb.cpus = ${8:2}
+        vb.memory = "${4:2048}"
+        vb.cpus = ${5:1}
 
         vb.linked_clone = false
       end
 
       config.vm.provision "shell" do |s|
-        ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-
         s.inline = <<-SHELL
-          useradd -m -s /bin/bash -G sudo $9
-          su $9 -c "mkdir -p ~/.ssh"
-
-          echo "$9 ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$9
-          su $9 -c "echo #{ssh_pub_key} >> ~/.ssh/authorized_keys"
-
-          chmod 0440 /etc/sudoers.d/$9
-          ifconfig | awk '\\$1 ~ /inet$/ { print \\$2 }' | awk '\\$1 !~ /127.0.0.1/'
+          yum install -y yum-utils net-tools epel-release
+          systemctl restart network
+          ifconfig | awk '\\$1 ~ /inet\\$/ { print \\$2 }' | awk '\\$1 !~ /127.0.0.1/'
         SHELL
+      end
+
+      config.vm.provision "ansible" do |ansible|
+        ansible.verbose = true
+        ansible.limit = "all"
+        ansible.playbook = "bootstrap.yaml"
+        ansible.inventory_path = "inventory.ini"
       end
     end
     '''

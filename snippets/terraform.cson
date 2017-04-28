@@ -6,39 +6,38 @@
       auth_token = "${1:PACKET_AUTH_TOKEN}"
     }
 
-    resource "packet_ssh_key" "${2:key1}" {
-      name = "${2:key1}"
-      public_key = "${3:\$\{file("~/.ssh/id_rsa.pub"\)\}}"
+    resource "packet_ssh_key" "${2:key}" {
+      name = "${2:key}"
+      public_key = "${3:\\$\\{file("~/.ssh/id_rsa.pub"\\)\\}}"
     }
 
-    resource "packet_project" "${4:my_project}" {
-      name = "${4:my_project}"
+    resource "packet_project" "${4:project}" {
+      name = "${4:project}"
       # payment_method = "${5:PAYMENT_METHOD_ID}"
     }
 
-    resource "packet_device" "${6:my_device}" {
+    resource "packet_device" "${6:device}" {
       count = 1
-      hostname = "${format("${6:my_device}-%02d", count.index + 1)}"
+      hostname = "${format("${6:device}-%02d", count.index + 1)}"
       plan = "${7:baremetal_0}"
-      facility = "${10:ewr1}"
-      operating_system = "${11:coreos_stable}"
-      billing_cycle = "${12:hourly}"
-      project_id = "\$\{packet_project.${4:my_project}.id\}"
-      user_data = "$13"
+      facility = "${8:ewr1}"
+      operating_system = "${9:centos_7}"
+      billing_cycle = "${10:hourly}"
+      project_id = "\\$\\{packet_project.${4:project}.id\\}"
+      user_data = "$11"
     }
 
-    resource "packet_volume" "${14:volume1}" {
-      facility = "${10:ewr1}"
-      project_id = "\$\{packet_project.${4:my_project}.id\}"
-      plan = "${15:storage_1}"
-      size = ${16:100}
-      billing_cycle = "${12:hourly}"
-      snapshot_policies = \{ snapshot_frequency = "${19:1day}", snapshot_count = ${20:7} \}
+    resource "packet_volume" "volume" {
+      facility = "${8:ewr1}"
+      project_id = "\\$\\{packet_project.${4:project}.id\\}"
+      plan = "${12:storage_1}"
+      size = ${13:100}
+      billing_cycle = "${10:hourly}"
+      snapshot_policies = \\{ snapshot_frequency = "${14:1day}", snapshot_count = ${15:7} \\}
     }
 
     output "IPAddr" {
-      # value = "\\$\{element(packet_device.${6:my_device}.*.network_adapter.1.ipv4_address, 1)\}"
-      value = "\\$\{element(packet_device.${6:my_device}.*.network_adapter.*.ipv4_address)\}"
+      value = "${element(packet_device.${6:device}.network.*.address)}"
     }
     '''
 
@@ -52,9 +51,9 @@
       allow_unverified_ssl = ${4:true}
     }
 
-    resource " vsphere_virtual_machine" "${5:my_machine}" {
+    resource " vsphere_virtual_machine" "machine" {
       count = 1
-      name = "${format("${5:my_machine}-%02d", count.index + 1)}"
+      name = "${format("${5:machine}-%02d", count.index + 1)}"
       memory = ${6:1024}
       vcpu = ${7:2}
 
@@ -69,30 +68,29 @@
       }
     }
 
-    resource "vsphere_virtual_disk" "${10:my_disk}" {
-      size = ${11:2}
-      vmdk_path = "${10:my_disk}"
+    resource "vsphere_virtual_disk" "disk" {
+      size = ${10:2}
+      vmdk_path = "${11:disk}"
       type = "thin"
     }
 
     output "IPAddr" {
-      # value = "\\$\{element(vsphere_virtual_machine.${5:my_machine}.*.network_adapter.1.ipv4_address, 1)\}"
-      value = "\\$\{element(vsphere_virtual_machine.${5:my_machine}.*.network_adapter.*.ipv4_address)\}"
+      value = "${element(vsphere_virtual_machine.machine.network.*.address)}"
     }
     '''
 
   'Terraform - VritualBox':
     'prefix': 'tf-vbox'
     'body': '''
-    resource "virtualbox_vm" "${1:node}" {
-      count = ${2:1}
-      name = "${format("${1:node}-%02d", count.index + 1)}"
+    resource "virtualbox_vm" "node" {
+      count = ${1:1}
+      name = "${format("${2:node}-%02d", count.index + 1)}"
 
       image = "${3:ubuntu-16.04.tar.xz}"
       cpus = ${4:2}
       memory = "${5:1024mib}"
 
-      user_data = "${6:\\$\{file(user_data)\}}"
+      user_data = "${6:\\$\\{file(user_data)\\}}"
 
       network_adapter {
         type = "${7:bridge}"
@@ -101,8 +99,7 @@
     }
 
     output "IPAddr" {
-      # value = "\\$\{element(virtualbox_vm.${1:node}.*.network_adapter.1.ipv4_address, 1)\}"
-      value = "\\$\{element(virtualbox_vm.${1:node}.*.network_adapter.*.ipv4_address)\}"
+      value = "${element(vsphere_virtual_machine.node.network.*.address)}"
     }
     '''
 
@@ -115,7 +112,7 @@
       clone_type = "full" # full, linked
     }
 
-    resource "vix_vswitch" "${2:vmnet10}" {
+    resource "vix_vswitch" "vmnet10" {
       name = "${2:vmnet10}"
       nat = true
       dhcp = true
@@ -123,7 +120,7 @@
       host_access = true
     }
 
-    resource "vix_vm" "${4:core}" {
+    resource "vix_vm" "core" {
       count = 1
       name = "${format("${4:core}-%02d", count.index + 1)}"
 
@@ -145,7 +142,7 @@
       network_adapter {
         type = "${11:custom}" # "custom", "nat", "bridged" or "hostonly"
         mac_address_type = "generated"
-        vswitch = "\\$\{vix_vswitch.${2:vmnet10}.name\}"
+        vswitch = "\\$\\{vix_vswitch.${2:vmnet10}.name\\}"
         start_connected = true
         driver = "vmxnet3"
         wake_on_lan = false
@@ -161,7 +158,6 @@
     }
 
     output "IPAddr" {
-      # value = "\\$\{element(vix_vm.${4:core}.*.network_adapter.1.ipv4_address, 1)\}"
-      value = "\\$\{element(vix_vm.${4:core}.*.network_adapter.*.ipv4_address)\}"
+      value = "${element(vsphere_virtual_machine.core.network.*.address)}"
     }
     '''

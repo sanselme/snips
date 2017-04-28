@@ -36,7 +36,7 @@
     'body': '''
     # ${3:Chart Title}
 
-    ${4:chart-name} Helm Chart for Kubernetes
+    ${3:Chart Title} Helm Chart for Kubernetes
 
     ## TL;DR
 
@@ -44,7 +44,7 @@
     $ helm install ${4:chart-name}
     ```
 
-    ## Prerequesites
+    ## Prerequisites
 
     - Kubernetes 1.4+ with Beta APIs enabled
     - PV provisioner support in the underlying infrastructure (Only when persisting data)
@@ -57,7 +57,7 @@
     $ helm install --name my-release ${4:chart-name}
     ```
 
-    The command deploys ${4:chart-name} on the Kubernetes cluster in the kube-system configuration. The [configuration](#configuration) section lists the paramerts that can be configured during installation.
+    The command deploys ${4:chart-name} on the Kubernetes cluster in the kube-system configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
     > **Tip**: List all releases using `helm list`
 
@@ -77,21 +77,13 @@
 
     Parameter                   | Description                         | Default
     --------------------------- | ----------------------------------- | ---------------
-    `image.repository`          | `${4:chart-name}` image repository  |
-    `image.tag`                 | `${4:chart-name}` image tag         | `"latest"`
-    `storage.class`             | Class of `pvc` storage              | `generic`
-    `storage.mode`              | Access mode for `pvc`               | `ReadWriteOnce`
-    `storage.size`              | Size of `pvc`                       | `100Mi`
-    `ingress.acme`              | Enable `letsencrypt` tls generation | `false`
-    `ingress.class`             | `class` of `ingress-controller`     | `"nginx"`
+    `image.repository`          | ${3:Chart Title} `image`            |
+    `image.tag`                 | ${3:Chart Title} `image version`    | `latest`
+    `storage.class`             | Storage `class`                     | `nfs`
+    `storage.mode`              | Storage `access mode`               | `ReadWriteOnce`
+    `storage.size`              | Storage `size`                      | `2Gi`
 
-    Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
-
-    ```bash
-    $ helm install --name my-release --set namespace=default,replicas=1 ${4:chart-name}
-    ```
-
-    Alternatyvely, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example:
+    Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example:
 
     ```bash
     $ helm install --name my-release -f values.yaml ${4:chart-name}

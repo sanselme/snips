@@ -1,3 +1,16 @@
+# Release 0.12.0
+
+- add ansible
+- add packer
+- update chart
+- update ingress
+- update pvc
+- update readme
+- update secret
+- update statefulset
+- update terraform
+- update vagrant
+
 # Release 0.11.7
 
 - update chart
