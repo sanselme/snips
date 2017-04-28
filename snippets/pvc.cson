@@ -6,6 +6,8 @@
     kind: PersistentVolumeClaim
     metadata:
       name: $1
+      annotations:
+        volume.beta.kubernetes.io/storage-class: nfs
     spec:
       accessModes:
       - $2
@@ -25,7 +27,7 @@
     {{ include "labels" . | indent 4 }}
       annotations:
     {{ include "annotations" . | indent 4 }}
-        volume.beta.kubernetes.io/storage-class: {{ default "generic" .Values.storage.class | quote }}
+        volume.beta.kubernetes.io/storage-class: {{ default "nfs" .Values.storage.class }}
     spec:
       accessModes:
       - {{ .Values.storage.mode }}

@@ -6,6 +6,9 @@
     kind: Ingress
     metadata:
       name: $1
+      annotations:
+        Kubernetes.io/tls-acme: "true"
+        Kubernetes.io/ingress.class: nginx
     spec:
       tls:
       - secretName: $2

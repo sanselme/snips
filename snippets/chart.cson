@@ -8,10 +8,10 @@
     keywords:
     - $1
     sources:
-    - ${2:https://git.interactive-fx.com/helm/$1}
+    - ${2:https://git.korg.io/helm/$1}
     maintainers:
     - name: ${3:Schubert Anselme}
-      email: ${4:sanselme@icloud.com}
+      email: ${4:sanselme@korg.io}
     '''
 
   'values.yaml':
@@ -22,17 +22,13 @@
       tag: ${2:latest}
     storage:
       mode: ReadWriteOnce
-      size: ${3:100Mi}
+      size: ${3:2Gi}
     resources:
       requests:
         memory: ${4:128Mi}
         cpu: ${5:100m}
     ingress:
-      acme: ${6:false}
-    tls:
-      ca: $7
-      cert: $8
-      key: $9
+      acme: ${6:true}
     '''
 
   'requirements.yaml':
