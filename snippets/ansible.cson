@@ -163,6 +163,9 @@
         file:
           path: "/etc/{{ item }}"
           state: directory
+        with_items:
+        - my_init.d
+        - service/$1
       - name: add startup scripts
         copy:
           dest: /etc/my_init.d/
@@ -170,7 +173,7 @@
           mode: 755
       - name: add service scripts
         copy:
-          dest: /etc/service/run
+          dest: /etc/service/$1/run
           src: run.sh
           mode: 755
     '''

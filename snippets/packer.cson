@@ -14,7 +14,7 @@
           "commit": "true",
           "changes": [
             "ENV DEBIAN_FRONTEND noninteractive",
-            "CMD /bin/bash"
+            "CMD /sbin/my_init"
           ],
           "run_command": [
             "-d",
@@ -65,15 +65,11 @@
     '''
 
 '.source.shell':
-  'run.sh':
-    'prefix': 'prk-setup'
+  'setup.sh':
+    'prefix': 'pkr-setup'
     'body': '''
     #!/bin/sh
     set -e
-
-    info() {
-      echo "[INFO] $@"
-    }
 
     # rerun setup
     [ -n "$RUN_SETUP" ] && rm -f /var/lib/.setup
@@ -81,6 +77,16 @@
     # check if already setup
     [ -f /var/lib/.setup ] && exit 0
 
-    # mark as setup
-    touch /var/lib/.setup
+    $1
+
+    # mark as setup & run
+    touch /var/lib/.setup && $2
     '''
+
+  '.source.shell':
+    'run.sh':
+      'prefix': 'prk-run'
+      'body': '''
+      #!/bin/sh
+      [ -f /var/lib/.setup ] $1
+      '''

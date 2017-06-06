@@ -1,0 +1,79 @@
+'.source.js':
+  'rollup.config.js':
+    'prefix': 'rollup'
+    'body': '''
+    import buble from "rollup-plugin-buble";
+    import comments from "postcss-discard-comments";
+    import commonjs from "rollup-plugin-commonjs";
+    import cssnano from "cssnano";
+    import cssnext from "postcss-cssnext";
+    import eslint from "rollup-plugin-eslint";
+    import json from "rollup-plugin-json";
+    import livereload from "rollup-plugin-livereload";
+    import path from "path";
+    import postcss from "rollup-plugin-postcss";
+    import precss from "precss";
+    import progress from "rollup-plugin-progress";
+    import pug from "rollup-plugin-pug";
+    import replace from "rollup-plugin-replace";
+    import resolve from "rollup-plugin-node-resolve";
+    import serve from "rollup-plugin-serve";
+    import strip from "rollup-plugin-strip";
+    import uglify from "rollup-plugin-uglify";
+    import url from "rollup-plugin-url";
+    import vue from "rollup-plugin-vue";
+
+    const debug = process.env.NODE_ENV !== "production";
+
+    const pkg = require(path.resolve(__dirname, "package.json"));
+    const external = Object.keys(pkg.dependencies);
+    const extensions = [".js", ".json", ".jsx", ".vue"];
+
+    const PATHS = {
+      src: path.resolve(__dirname, "src"),
+      dest: path.resolve(__dirname, "build")
+    };
+
+    const plugins = [
+      eslint(),
+      commonjs(),
+      json(),
+      progress(),
+      strip(),
+      vue({ autoStyles: false, styleToImports: true }),
+
+      pug({sourceMap: debug ? true : false}),
+      replace({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development")}),
+      resolve({extensions, browser: true, jsnext: true}),
+      url({limit: 10 * 1024}),
+
+      postcss({
+        extensions: [".css", ".scss"],
+        extract: debug ? `${PATHS.dest}/bundle.css` : `${PATHS.dest}/bundle.min.css`,
+        plugins: [
+          precss(),
+          cssnext({warnForDuplicates: false}),
+          debug ? comments({removeAll: true}) : "",
+          debug ? cssnano() : ""
+        ],
+        sourceMap: debug ? "inline" : false
+      }),
+
+      buble(),
+      debug && livereload(),
+      debug && serve({open: true, contentBase: PATHS.dest, host: "0.0.0.0", port: 8080}),
+    ];
+
+    if (!debug) {
+      plugins.push(uglify());
+    }
+
+    export default {
+      external,
+      plugins,
+      format: "iife",
+      entry: `${PATHS.src}/main.js`,
+      dest: debug ? `${PATHS.dest}/bundle.js` : `${PATHS.dest}/bundle.min.js`,
+      sourceMap: debug ? "inline" : false,
+    };
+    '''
