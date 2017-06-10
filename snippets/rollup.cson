@@ -7,7 +7,7 @@
     import commonjs from "rollup-plugin-commonjs";
     import cssnano from "cssnano";
     import cssnext from "postcss-cssnext";
-    import eslint from "rollup-plugin-eslint";
+    import execute from "rollup-plugin-execute";
     import json from "rollup-plugin-json";
     import livereload from "rollup-plugin-livereload";
     import path from "path";
@@ -17,6 +17,7 @@
     import pug from "rollup-plugin-pug";
     import replace from "rollup-plugin-replace";
     import resolve from "rollup-plugin-node-resolve";
+    import scss from "postcss-scss";
     import serve from "rollup-plugin-serve";
     import strip from "rollup-plugin-strip";
     import uglify from "rollup-plugin-uglify";
@@ -24,56 +25,148 @@
     import vue from "rollup-plugin-vue";
 
     const debug = process.env.NODE_ENV !== "production";
-
     const pkg = require(path.resolve(__dirname, "package.json"));
     const external = Object.keys(pkg.dependencies);
-    const extensions = [".js", ".json", ".jsx", ".vue"];
 
-    const PATHS = {
+    const PATH = {
       src: path.resolve(__dirname, "src"),
       dest: path.resolve(__dirname, "build")
     };
 
+    const postcssPlugins = [
+      precss(),
+      cssnext({warnForDuplicates: false}),
+    ];
+
     const plugins = [
-      eslint(),
       commonjs(),
       json(),
       progress(),
       strip(),
-      vue({ autoStyles: false, styleToImports: true }),
 
       pug({sourceMap: debug ? true : false}),
       replace({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development")}),
-      resolve({extensions, browser: true, jsnext: true}),
-      url({limit: 10 * 1024}),
+      resolve({extensions: [".js", ".json", ".jsx", ".vue"], browser: true, jsnext: true}),
+      url({limit: 10 * 1024, include: [".gif", ".svg", ".png", ".jpg", ".jpeg", ".eot", ".otf", "ttf", "woff", "woff2"]}),
+      vue({ autoStyles: false, styleToImports: true }),
 
       postcss({
         extensions: [".css", ".scss"],
-        extract: debug ? `${PATHS.dest}/bundle.css` : `${PATHS.dest}/bundle.min.css`,
-        plugins: [
-          precss(),
-          cssnext({warnForDuplicates: false}),
-          debug ? comments({removeAll: true}) : "",
-          debug ? cssnano() : ""
-        ],
+        extract: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`,
+        parser: scss,
+        plugins: postcssPlugins,
         sourceMap: debug ? "inline" : false
       }),
 
       buble(),
-      debug && livereload(),
-      debug && serve({open: true, contentBase: PATHS.dest, host: "0.0.0.0", port: 8080}),
     ];
 
-    if (!debug) {
-      plugins.push(uglify());
+    if (debug) {
+      plugins.push(
+        execute([
+          `cp -f index.html favicon.* ${PATH.dest}/`,
+          `rollup -c rollup.config.vendor.js -w`
+        ]),
+
+        livereload(),
+        serve({open: true, contentBase: PATH.dest, host: "0.0.0.0", port: 8080})
+      );
+    } else {
+      plugins.push(
+        uglify(),
+        execute([
+          `cp -f index.html favicon.* ${PATH.dest}/`,
+          `sed -i '' 's/\\.js/.min.js/g' ${PATH.dest}/index.html`,
+          `sed -i '' 's/\\.css/.min.css/g' ${PATH.dest}/index.html`
+        ])
+      );
+      postcssPlugins.push(
+        comments({removeAll: true}),
+        cssnano()
+      );
     }
 
     export default {
       external,
       plugins,
       format: "iife",
-      entry: `${PATHS.src}/main.js`,
-      dest: debug ? `${PATHS.dest}/bundle.js` : `${PATHS.dest}/bundle.min.js`,
+      entry: `${PATH.src}/main.js`,
+      dest: debug ? `${PATH.dest}/js/bundle.js` : `${PATH.dest}/js/bundle.min.js`,
+      sourceMap: debug ? "inline" : false,
+    };
+    '''
+
+  '.rollup.config.vendor.js':
+    'prefix': 'rollup-vendor'
+    'body': '''
+    import buble from "rollup-plugin-buble";
+    import comments from "postcss-discard-comments";
+    import commonjs from "rollup-plugin-commonjs";
+    import cssnano from "cssnano";
+    import cssnext from "postcss-cssnext";
+    import execute from "rollup-plugin-execute";
+    import json from "rollup-plugin-json";
+    import path from "path";
+    import postcss from "rollup-plugin-postcss";
+    import precss from "precss";
+    import progress from "rollup-plugin-progress";
+    import replace from "rollup-plugin-replace";
+    import resolve from "rollup-plugin-node-resolve";
+    import scss from "postcss-scss";
+    import strip from "rollup-plugin-strip";
+    import uglify from "rollup-plugin-uglify";
+    import url from "rollup-plugin-url";
+
+    const debug = process.env.NODE_ENV !== "production";
+    const pkg = require(path.resolve(__dirname, "package.json"));
+    const external = Object.keys(pkg.dependencies);
+
+    const PATH = {
+      src: path.resolve(__dirname, "src"),
+      dest: path.resolve(__dirname, "build"),
+      font: [path.resolve(__dirname, "node_modules", "font-awesome", "fonts")]
+    };
+
+    const postcssPlugins = [
+      precss(),
+      cssnext({warnForDuplicates: false}),
+    ];
+
+    const plugins = [
+      commonjs(),
+      json(),
+      progress(),
+      strip(),
+
+      replace({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development")}),
+      resolve({extensions: [".js", ".json", ".jsx", ".vue"], browser: true, jsnext: true}),
+      url({limit: 10 * 1024, include: [".gif", ".svg", ".png", ".jpg", ".jpeg", ".eot", ".otf", "ttf", "woff", "woff2"]}),
+      execute([PATH.font.length !== 0 && `mkdir -p ${PATH.dest}/fonts && cp -f ${PATH.font}/* ${PATH.dest}/fonts`]),
+
+      postcss({
+        extensions: [".css", ".scss"],
+        extract: debug ? `${PATH.dest}/css/vendor.css` : `${PATH.dest}/css/vendor.min.css`,
+        parser: scss,
+        plugins: postcssPlugins,
+        sourceMap: debug ? "inline" : false
+      }),
+
+      buble(),
+    ];
+
+    if (!debug) {
+      plugins.push(uglify());
+      postcssPlugins.push(
+        comments({removeAll: true}),
+        cssnano()
+      );
+    }
+
+    export default {
+      plugins,
+      format: "iife",
+      entry: `${PATH.src}/vendor.js`,
+      dest: debug ? `${PATH.dest}/js/vendor.js` : `${PATH.dest}/js/vendor.min.js`,
       sourceMap: debug ? "inline" : false,
     };
     '''
