@@ -1,26 +1,47 @@
 '.source.swift':
-  'Package.swift':
-    'prefix': 'spm'
+  'Package.swift (3.0)':
+    'prefix': 'spm-3'
     'body': '''
+    // swift-tools-version:3.0
     import PackageDescription
 
+    let urls: [String] = [$3]
 
-    let urls = [
-      "https://${6:github.com}/${7:account}/${8:package}"
-    ];
+    let targets: [[String: Any]] = [
+      ["name": "$1"]$2
+    ]
 
     let package = Package(
-        name: "${1:PackageName}",
-        dependencies: urls.map { .Package(url: \\$0, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
+        name: "$1",
+        targets: targets.flatMap { target in
+          guard let name = target["name"] else { return Target(name: "") }
+          guard let dependencies = target["dependencies"] else { return Target(name: name as! String) }
+
+          return Target(name: name as! String, dependencies: (dependencies as! [String]).map { Target.Dependency(stringLiteral: \\$0) })
+        },
+        dependencies: urls.map { .Package(url: \\$0, versions: Version(.min, .min, .min) ... Version(.max, .max, .max)) }
     )
     '''
-
-  'Package Dependencies':
-    'prefix': 'package'
-    'body': '.Package(url: "https://${1:github.com}/${2:account}/${3:package}", versions: Version(.min, .min, .min) ..< Version(.max, .max, .max))'
-
-  'Package URLs':
-    'prefix': 'purl'
+  'Package.swift (4.0)':
+    'prefix': 'spm-4'
     'body': '''
-    "https://${1:github.com}/${2:account}/${3:package}"
+    // swift-tools-version:4.0
+    import PackageDescription
+
+    let urls: [String] = [$3]
+
+    let targets: [[String: Any]] = [
+      ["name": "$1"]$2
+    ]
+
+    let package = Package(
+        name: "$1",
+        dependencies: urls.map { .package(url: \\$0, from: "1.0.0") },
+        targets: targets.flatMap { target in
+          guard let name = target["name"] else { return .target(name: "") }
+          guard let dependencies = target["dependencies"] else { return .target(name: name as! String) }
+
+          return .target(name: name as! String, dependencies: (dependencies as! [String]).map { Target.Dependency(stringLiteral: \\$0) })
+        }
+    )
     '''

@@ -1,3 +1,17 @@
+# Release 1.0.0
+
+- add eslintrc
+- add makefile-go
+- add npm
+- add rollup
+- update ansible
+- update babelrc
+- update html
+- update makefile-spm
+- update packer
+- update spm
+- remove npackage
+
 # Release 0.12.0
 
 - add ansible
