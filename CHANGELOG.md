@@ -1,3 +1,7 @@
+# Release 1.0.1
+
+- fix spm
+
 # Release 1.0.0
 
 - add eslintrc

@@ -19,7 +19,7 @@
 
           return Target(name: name as! String, dependencies: (dependencies as! [String]).map { Target.Dependency(stringLiteral: \\$0) })
         },
-        dependencies: urls.map { .Package(url: \\$0, versions: Version(.min, .min, .min) ... Version(.max, .max, .max)) }
+        dependencies: urls.map { .Package(url: \\$0, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
     )
     '''
   'Package.swift (4.0)':
