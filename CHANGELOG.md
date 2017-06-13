@@ -1,3 +1,7 @@
+# Release 1.0.2
+
+- fix rollup
+
 # Release 1.0.1
 
 - fix spm
