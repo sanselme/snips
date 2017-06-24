@@ -1,4 +1,177 @@
+<<<<<<< Updated upstream
 # Release 0.7.0
+=======
+# Release 1.0.3
+
+- fix html
+- update npm
+- update rollup
+
+# Release 1.0.2
+
+- fix rollup
+
+# Release 1.0.1
+
+- fix spm
+
+# Release 1.0.0
+
+- add eslintrc
+- add makefile-go
+- add npm
+- add rollup
+- update ansible
+- update babelrc
+- update html
+- update makefile-spm
+- update packer
+- update spm
+- remove npackage
+
+# Release 0.12.0
+
+- add ansible
+- add packer
+- update chart
+- update ingress
+- update pvc
+- update readme
+- update secret
+- update statefulset
+- update terraform
+- update vagrant
+
+# Release 0.11.7
+
+- update chart
+- update ingress
+- update pvc
+- update readme
+- update secret
+- update statefulset
+- update vagrant
+
+# Release 0.11.5
+
+- update vagrant
+- update terraform
+
+# Release 0.11.4
+
+- add terraform
+- update vagrant
+
+# Release 0.11.2
+
+- update configmap
+- update daemonset
+- update deployment
+- update ingress
+- update pvc
+- update secret
+- update service
+- update statefulset
+- update storageclass
+
+# Release 0.11.1
+
+- add vagrant
+
+# Release 0.11.0
+
+# Release 0.10.2
+
+- update chart
+
+# Release 0.10.1
+
+- update chart
+
+# Release 0.10.0
+
+- add configmap
+- add daemonset
+- add deployment
+- add ingress
+- add pvc
+- add secret
+- add service
+- add statefulset
+- add storageclass
+- update chart
+- update legal
+- update readme
+
+# Release 0.9.4
+
+- change chart
+
+# Releae 0.8.6
+
+- change chart
+- change readme
+
+# Releae 0.8.5
+
+- change chart
+- change readme
+
+# Release 0.8.4
+
+- change chart
+
+# Release 0.8.3
+
+- add readmechart
+
+# Release 0.8.2
+
+- fix chart
+
+# Release 0.8.1
+
+- update chart
+
+# Release 0.8.0
+
+- add chart
+
+# Release 0.7.8
+
+- fix npackage
+- fix webpack
+
+# Release 0.7.7
+
+- fix spm
+
+# Release 0.7.6
+
+- fix spm
+
+# Release 0.7.5
+
+- update spm
+
+# Release 0.7.4
+
+- update spm
+
+# Release 0.7.3
+
+- update readme
+
+# Release 0.7.2
+
+- update spm
+
+# Release 0.7.1
+
+- update spm
+
+# Release 0.7
+>>>>>>> Stashed changes
 
 - remove gig
 

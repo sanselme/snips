@@ -1,0 +1,229 @@
+'.source.js':
+  'rollup.config.js':
+    'prefix': 'rollup'
+    'body': '''
+    import buble from "rollup-plugin-buble";
+    import commonjs from "rollup-plugin-commonjs";
+    import execute from "rollup-plugin-execute";
+    import livereload from "rollup-plugin-livereload";
+    import path from "path";
+    import progress from "rollup-plugin-progress";
+    import pug from "rollup-plugin-pug";
+    import replace from "rollup-plugin-replace";
+    import resolve from "rollup-plugin-node-resolve";
+    import scss from "rollup-plugin-scss";
+    import serve from "rollup-plugin-serve";
+    import strip from "rollup-plugin-strip";
+    import uglify from "rollup-plugin-uglify";
+    import url from "rollup-plugin-url";
+    import vue from "rollup-plugin-vue";
+
+    const debug = process.env.NODE_ENV !== "production";
+
+    const PATH = {
+      src: path.resolve(__dirname, "${1:src}"),
+      dest: path.resolve(__dirname, "${2:build}"),
+      assets: [$3],
+      font: [$4]
+    };
+
+    const plugins = [
+      commonjs(),
+      progress(),
+      strip(),
+
+      pug({sourceMap: debug ? true : false}),
+      replace({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development")}),
+      resolve({extensions: [".js", ".json", ".jsx", ".vue"], browser: true, jsnext: true}),
+      url({limit: 10 * 1024, include: [".gif", ".svg", ".png", ".jpg", ".jpeg", ".eot", ".otf", "ttf", "woff", "woff2"]}),
+      vue({autoStyles: false, styleToImports: true}),
+
+      execute([
+        `cp -f index.html favicon.* ${PATH.dest}/`,
+        PATH.assets.length === 0 ? "echo no assets" : `cp -rf ${PATH.assets} ${PATH.dest}/`,
+        PATH.font.length === 0 ? "echo no fonts" : `mkdir -p ${PATH.dest}/fonts && cp -f ${PATH.font}/* ${PATH.dest}/fonts`
+      ]),
+
+      scss({
+        includePaths: [path.resolve(__dirname, "node_modules")],
+        outpuStyle: debug ? "expanded" : "compressed",
+        sourceMap: debug ? true : false,
+        sourceMapEmbed: true,
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+      }),
+
+      buble()
+    ];
+
+    if (debug) {
+      plugins.push(
+        livereload(),
+        serve({open: true, contentBase: PATH.dest, host: "${7:0.0.0.0}", port: ${8:8080}})
+      );
+    } else {
+      plugins.push(
+        uglify(),
+        execute([
+          "echo changing to minified version",
+          `sed -i '' 's/\\\\\\\\\.js/.min.js/g' ${PATH.dest}/index.html`,
+          `sed -i '' 's/\\\\\\\\\.css/.min.css/g' ${PATH.dest}/index.html`
+        ])
+      );
+    }
+
+    export default {
+      plugins,
+      format: "iife",
+      entry: `${PATH.src}/${5:main}.js`,
+      dest: debug ? `${PATH.dest}/js/${6:bundle}.js` : `${PATH.dest}/js/${6:bundle}.min.js`,
+      sourceMap: debug ? "inline" : false
+    };
+    '''
+
+  'rollup.config.bundle.js':
+    'prefix': 'rollup-bundle'
+    'body': '''
+    import buble from "rollup-plugin-buble";
+    import commonjs from "rollup-plugin-commonjs";
+    import execute from "rollup-plugin-execute";
+    import livereload from "rollup-plugin-livereload";
+    import path from "path";
+    import progress from "rollup-plugin-progress";
+    import pug from "rollup-plugin-pug";
+    import replace from "rollup-plugin-replace";
+    import resolve from "rollup-plugin-node-resolve";
+    import scss from "rollup-plugin-scss";
+    import serve from "rollup-plugin-serve";
+    import strip from "rollup-plugin-strip";
+    import uglify from "rollup-plugin-uglify";
+    import url from "rollup-plugin-url";
+    import vue from "rollup-plugin-vue";
+
+    const debug = process.env.NODE_ENV !== "production";
+    const pkg = require(path.resolve(__dirname, "package.json"));
+    const external = Object.keys(pkg.dependencies);
+
+    const PATH = {
+      src: path.resolve(__dirname, "${1:src}"),
+      dest: path.resolve(__dirname, "${2:build}"),
+      assets: [$3]
+    };
+
+    const plugins = [
+      commonjs(),
+      json(),
+      progress(),
+      strip(),
+
+      pug({sourceMap: debug ? true : false}),
+      replace({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development")}),
+      resolve({extensions: [".js", ".json", ".jsx", ".vue"], browser: true, jsnext: true}),
+      url({limit: 10 * 1024, include: [".gif", ".svg", ".png", ".jpg", ".jpeg", ".eot", ".otf", "ttf", "woff", "woff2"]}),
+      vue({ autoStyles: false, styleToImports: true }),
+
+      execute([
+        `cp -f index.html favicon.* ${PATH.dest}/`,
+        PATH.assets.length !== 0 && `cp -rf ${PATH.assets} ${PATH.dest}/`
+      ]),
+
+      scss({
+        includePaths: [path.resolve(__dirname, "node_modules")],
+        outpuStyle: debug ? "expanded" : "compressed",
+        sourceMap: debug ? true : false,
+        sourceMapEmbed: true,
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+      }),
+
+      buble()
+    ];
+
+    if (debug) {
+      plugins.push(
+        execute([`rollup -c rollup.config.vendor.js -w`]),
+
+        livereload(),
+        serve({open: true, contentBase: PATH.dest, host: "${6:0.0.0.0}", port: ${7:8080}})
+      );
+    } else {
+      plugins.push(
+        uglify(),
+        execute([
+          "echo changing to minified version",
+          `sed -i '' 's/\\\\\\\\\.js/.min.js/g' ${PATH.dest}/index.html`,
+          `sed -i '' 's/\\\\\\\\\.css/.min.css/g' ${PATH.dest}/index.html`,
+          `rollup -c rollup.config.vendor.js`
+        ])
+      );
+    }
+
+    export default {
+      external,
+      plugins,
+      format: "iife",
+      entry: `${PATH.src}/${4:main}.js`,
+      dest: debug ? `${PATH.dest}/js/${5:bundle}.js` : `${PATH.dest}/js/${5:bundle}.min.js`,
+      sourceMap: debug ? "inline" : false
+    };
+    '''
+
+  '.rollup.config.vendor.js':
+    'prefix': 'rollup-vendor'
+    'body': '''
+    import buble from "rollup-plugin-buble";
+    import commonjs from "rollup-plugin-commonjs";
+    import execute from "rollup-plugin-execute";
+    import livereload from "rollup-plugin-livereload";
+    import path from "path";
+    import progress from "rollup-plugin-progress";
+    import pug from "rollup-plugin-pug";
+    import replace from "rollup-plugin-replace";
+    import resolve from "rollup-plugin-node-resolve";
+    import scss from "rollup-plugin-scss";
+    import serve from "rollup-plugin-serve";
+    import strip from "rollup-plugin-strip";
+    import uglify from "rollup-plugin-uglify";
+    import url from "rollup-plugin-url";
+    import vue from "rollup-plugin-vue";
+
+    const debug = process.env.NODE_ENV !== "production";
+    const pkg = require(path.resolve(__dirname, "package.json"));
+    const external = Object.keys(pkg.dependencies);
+
+    const PATH = {
+      src: path.resolve(__dirname, "${1:src}"),
+      dest: path.resolve(__dirname, "${2:build}"),
+      font: [$3]
+    };
+
+    const plugins = [
+      commonjs(),
+      json(),
+      progress(),
+      strip(),
+
+      replace({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development")}),
+      resolve({extensions: [".js", ".json", ".jsx", ".vue"], browser: true, jsnext: true}),
+      url({limit: 10 * 1024, include: [".gif", ".svg", ".png", ".jpg", ".jpeg", ".eot", ".otf", "ttf", "woff", "woff2"]}),
+      execute([PATH.font.length !== 0 && `mkdir -p ${PATH.dest}/fonts && cp -f ${PATH.font}/* ${PATH.dest}/fonts`]),
+
+      scss({
+        includePaths: [path.resolve(__dirname, "node_modules")],
+        outpuStyle: debug ? "expanded" : "compressed",
+        sourceMap: debug ? true : false,
+        sourceMapEmbed: true,
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+      }),
+
+      buble()
+    ];
+
+    if (!debug) { plugins.push(uglify()); }
+
+    export default {
+      plugins,
+      format: "iife",
+      entry: `${PATH.src}/${4:vendor}.js`,
+      dest: debug ? `${PATH.dest}/js/${4:vendor}.js` : `${PATH.dest}/js/${4:vendor}.min.js`,
+      sourceMap: debug ? "inline" : false
+    };
+    '''

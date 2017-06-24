@@ -1,6 +1,10 @@
 {
   "name": "snips",
+<<<<<<< Updated upstream
   "version": "0.7.0",
+=======
+  "version": "1.0.3",
+>>>>>>> Stashed changes
   "description": "My personal Atom snippets",
   "repository": "https://git.interactive-fx.com/sanselme/snips.git",
   "keywords": [
