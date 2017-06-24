@@ -1,0 +1,136 @@
+'.source.yaml':
+  'Chart.yaml':
+    'prefix': 'chart'
+    'body': '''
+    name: $1
+    version: 0.1.0
+    description: $1 Helm Chart for Kubernetes
+    keywords:
+    - $1
+    sources:
+    - ${2:https://git.korg.io/helm/$1}
+    maintainers:
+    - name: ${3:Schubert Anselme}
+      email: ${4:sanselme@korg.io}
+    '''
+
+  'values.yaml':
+    'prefix': '''values'''
+    'body': '''
+    image:
+      repository: $1
+      tag: ${2:latest}
+    storage:
+      mode: ReadWriteOnce
+      size: ${3:2Gi}
+    resources:
+      requests:
+        memory: ${4:128Mi}
+        cpu: ${5:100m}
+    ingress:
+      acme: ${6:true}
+    '''
+
+  'requirements.yaml':
+    'prefix': 'requirements'
+    'body': '''
+    dependencies:
+    - name: $1
+      version: $2
+      repository: $3
+    '''
+
+  'Chart Dependency':
+    'prefix': 'dependency'
+    'body': '''
+    - name: $1
+      version: $2
+      repository: $3
+    '''
+
+  'Chart Namespace':
+    'prefix': 'namespace'
+    'body': '''
+    namespace: {{ default "kube-system" .Values.namespace }}
+    '''
+
+  'Chart Fullname':
+    'prefix': 'fullname'
+    'body': '''{{ template "fullname" . }}'''
+
+  'Chart Labels':
+    'prefix': 'labels'
+    'body': '''
+    labels:
+      app: {{ template "fullname" . }}
+      chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+    '''
+
+  'Chart Checksum Annotation':
+    'prefix': 'checksum'
+    'body': '''checksum/config: {{ include (print $.Chart.Name "/templates/${1:configmap}.yaml") . | sha256sum }}'''
+
+  'Chart Image':
+    'prefix': 'image'
+    'body': '''{{ printf "%s:%s" .Values.image.repository .Values.image.tag }}'''
+
+  'Chart Images':
+    'prefix': 'images'
+    'body': '''{{ printf "%s:%s" .Values.$1.image.repository .Values.$1.image.tag }}'''
+
+  'Chart Secret':
+    'prefix': 'secret-data'
+    'body': '''
+    ${1:key}: {{ .Values.$2 | b64enc | quote }}
+    '''
+
+  'Formated Print':
+    'prefix': 'printf'
+    'body': '''{{ printf "$1" $2 }}'''
+
+  'To YAML':
+    'prefix': 'to_yaml'
+    'body': '''{{ toYaml .Values.$1 | trim | indent $2 }}'''
+
+'.text.html':
+  '_helpers.tpl':
+    'prefix': 'helpers'
+    'body': '''
+    {{/* vim: set filetype=mustache: */}}
+
+    {{/*
+    Expand the name of the chart.
+    */}}
+    {{- define "name" -}}
+    {{- default .Chart.Name .Values.nameOverride | trunc 24 -}}
+    {{- end -}}
+
+    {{/*
+    Create a default fully qualified app name.
+    We truncate at 24 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+    */}}
+    {{- define "fullname" -}}
+    {{- $name := default .Chart.Name .Values.nameOverride -}}
+    {{- default .Release.Name $name | trunc 24 -}}
+    {{- end -}}
+
+    {{- define "labels" -}}
+    app: {{ template "fullname" . }}
+    chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    {{- end -}}
+
+    {{- define "annotations" -}}
+    helm.sh/created: {{ .Release.Time.Seconds | quote }}
+    {{- end -}}
+    '''
+
+'.text.plain':
+  'NOTES.txt':
+    'prefix': 'notes'
+    'body': '''
+    https://{{ .Values.fqdn }}
+    '''
