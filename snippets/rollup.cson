@@ -46,10 +46,10 @@
 
       scss({
         includePaths: [path.resolve(__dirname, "node_modules")],
-        outpuStyle: debug ? "expanded" : "compressed",
-        sourceMap: debug ? true : false,
-        sourceMapEmbed: true,
-        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`,
+        outputStyle: debug ? "expanded" : "compressed",
+        sourceMapContents: true,
+        sourceMapEmbed: debug ? true : false,
       }),
 
       buble()
@@ -128,10 +128,10 @@
 
       scss({
         includePaths: [path.resolve(__dirname, "node_modules")],
-        outpuStyle: debug ? "expanded" : "compressed",
-        sourceMap: debug ? true : false,
-        sourceMapEmbed: true,
-        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`,
+        outputStyle: debug ? "expanded" : "compressed",
+        sourceMapContents: true,
+        sourceMapEmbed: debug ? true : false,
       }),
 
       buble()
@@ -208,10 +208,10 @@
 
       scss({
         includePaths: [path.resolve(__dirname, "node_modules")],
-        outpuStyle: debug ? "expanded" : "compressed",
-        sourceMap: debug ? true : false,
-        sourceMapEmbed: true,
-        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`,
+        outputStyle: debug ? "expanded" : "compressed",
+        sourceMapContents: true,
+        sourceMapEmbed: debug ? true : false,
       }),
 
       buble()
