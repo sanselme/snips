@@ -1,8 +1,13 @@
+# Release 1.0.4
 
-# Release 1.0.3
+- fix rollup
+
+  # Release 1.0.3
 
 - fix html
+
 - update npm
+
 - update rollup
 
 # Release 1.0.2
