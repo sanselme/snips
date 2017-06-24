@@ -3,20 +3,15 @@
     'prefix': 'rollup'
     'body': '''
     import buble from "rollup-plugin-buble";
-    import comments from "postcss-discard-comments";
     import commonjs from "rollup-plugin-commonjs";
-    import cssnano from "cssnano";
-    import cssnext from "postcss-cssnext";
     import execute from "rollup-plugin-execute";
     import livereload from "rollup-plugin-livereload";
     import path from "path";
-    import postcss from "rollup-plugin-postcss";
-    import precss from "precss";
     import progress from "rollup-plugin-progress";
     import pug from "rollup-plugin-pug";
     import replace from "rollup-plugin-replace";
     import resolve from "rollup-plugin-node-resolve";
-    import scss from "postcss-scss";
+    import scss from "rollup-plugin-scss";
     import serve from "rollup-plugin-serve";
     import strip from "rollup-plugin-strip";
     import uglify from "rollup-plugin-uglify";
@@ -31,11 +26,6 @@
       assets: [$3],
       font: [$4]
     };
-
-    const postcssPlugins = [
-      precss(),
-      cssnext({warnForDuplicates: false})
-    ];
 
     const plugins = [
       commonjs(),
@@ -54,12 +44,12 @@
         PATH.font.length === 0 ? "echo no fonts" : `mkdir -p ${PATH.dest}/fonts && cp -f ${PATH.font}/* ${PATH.dest}/fonts`
       ]),
 
-      postcss({
-        extensions: [".css", ".scss"],
-        extract: debug ? `${PATH.dest}/css/${6:bundle}.css` : `${PATH.dest}/css/${6:bundle}.min.css`,
-        parser: scss,
-        plugins: postcssPlugins,
-        sourceMap: debug ? "inline" : false
+      scss({
+        includePaths: [path.resolve(__dirname, "node_modules")],
+        outpuStyle: debug ? "expanded" : "compressed",
+        sourceMap: debug ? true : false,
+        sourceMapEmbed: true,
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
       }),
 
       buble()
@@ -79,10 +69,6 @@
           `sed -i '' 's/\\\\\\\\\.css/.min.css/g' ${PATH.dest}/index.html`
         ])
       );
-      postcssPlugins.push(
-        comments({removeAll: true}),
-        cssnano({discardUnused: false})
-      );
     }
 
     export default {
@@ -98,21 +84,15 @@
     'prefix': 'rollup-bundle'
     'body': '''
     import buble from "rollup-plugin-buble";
-    import comments from "postcss-discard-comments";
     import commonjs from "rollup-plugin-commonjs";
-    import cssnano from "cssnano";
-    import cssnext from "postcss-cssnext";
     import execute from "rollup-plugin-execute";
-    import json from "rollup-plugin-json";
     import livereload from "rollup-plugin-livereload";
     import path from "path";
-    import postcss from "rollup-plugin-postcss";
-    import precss from "precss";
     import progress from "rollup-plugin-progress";
     import pug from "rollup-plugin-pug";
     import replace from "rollup-plugin-replace";
     import resolve from "rollup-plugin-node-resolve";
-    import scss from "postcss-scss";
+    import scss from "rollup-plugin-scss";
     import serve from "rollup-plugin-serve";
     import strip from "rollup-plugin-strip";
     import uglify from "rollup-plugin-uglify";
@@ -128,11 +108,6 @@
       dest: path.resolve(__dirname, "${2:build}"),
       assets: [$3]
     };
-
-    const postcssPlugins = [
-      precss(),
-      cssnext({warnForDuplicates: false})
-    ];
 
     const plugins = [
       commonjs(),
@@ -151,12 +126,12 @@
         PATH.assets.length !== 0 && `cp -rf ${PATH.assets} ${PATH.dest}/`
       ]),
 
-      postcss({
-        extensions: [".css", ".scss"],
-        extract: debug ? `${PATH.dest}/css/${5:bundle}.css` : `${PATH.dest}/css/${5:bundle}.min.css`,
-        parser: scss,
-        plugins: postcssPlugins,
-        sourceMap: debug ? "inline" : false
+      scss({
+        includePaths: [path.resolve(__dirname, "node_modules")],
+        outpuStyle: debug ? "expanded" : "compressed",
+        sourceMap: debug ? true : false,
+        sourceMapEmbed: true,
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
       }),
 
       buble()
@@ -179,10 +154,6 @@
           `rollup -c rollup.config.vendor.js`
         ])
       );
-      postcssPlugins.push(
-        comments({removeAll: true}),
-        cssnano({discardUnused: false})
-      );
     }
 
     export default {
@@ -199,22 +170,20 @@
     'prefix': 'rollup-vendor'
     'body': '''
     import buble from "rollup-plugin-buble";
-    import comments from "postcss-discard-comments";
     import commonjs from "rollup-plugin-commonjs";
-    import cssnano from "cssnano";
-    import cssnext from "postcss-cssnext";
     import execute from "rollup-plugin-execute";
-    import json from "rollup-plugin-json";
+    import livereload from "rollup-plugin-livereload";
     import path from "path";
-    import postcss from "rollup-plugin-postcss";
-    import precss from "precss";
     import progress from "rollup-plugin-progress";
+    import pug from "rollup-plugin-pug";
     import replace from "rollup-plugin-replace";
     import resolve from "rollup-plugin-node-resolve";
-    import scss from "postcss-scss";
+    import scss from "rollup-plugin-scss";
+    import serve from "rollup-plugin-serve";
     import strip from "rollup-plugin-strip";
     import uglify from "rollup-plugin-uglify";
     import url from "rollup-plugin-url";
+    import vue from "rollup-plugin-vue";
 
     const debug = process.env.NODE_ENV !== "production";
     const pkg = require(path.resolve(__dirname, "package.json"));
@@ -225,11 +194,6 @@
       dest: path.resolve(__dirname, "${2:build}"),
       font: [$3]
     };
-
-    const postcssPlugins = [
-      precss(),
-      cssnext({warnForDuplicates: false})
-    ];
 
     const plugins = [
       commonjs(),
@@ -242,24 +206,18 @@
       url({limit: 10 * 1024, include: [".gif", ".svg", ".png", ".jpg", ".jpeg", ".eot", ".otf", "ttf", "woff", "woff2"]}),
       execute([PATH.font.length !== 0 && `mkdir -p ${PATH.dest}/fonts && cp -f ${PATH.font}/* ${PATH.dest}/fonts`]),
 
-      postcss({
-        extensions: [".css", ".scss"],
-        extract: debug ? `${PATH.dest}/css/${4:vendor}.css` : `${PATH.dest}/css/${4:vendor}.min.css`,
-        parser: scss,
-        plugins: postcssPlugins,
-        sourceMap: debug ? "inline" : false
+      scss({
+        includePaths: [path.resolve(__dirname, "node_modules")],
+        outpuStyle: debug ? "expanded" : "compressed",
+        sourceMap: debug ? true : false,
+        sourceMapEmbed: true,
+        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
       }),
 
       buble()
     ];
 
-    if (!debug) {
-      plugins.push(uglify());
-      postcssPlugins.push(
-        comments({removeAll: true}),
-        cssnano({discardUnused: false})
-      );
-    }
+    if (!debug) { plugins.push(uglify()); }
 
     export default {
       plugins,
