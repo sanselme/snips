@@ -1,3 +1,7 @@
+# Release 1.0.5
+
+- fix rollup
+
 # Release 1.0.4
 
 - fix rollup

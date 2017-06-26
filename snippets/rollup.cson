@@ -41,7 +41,7 @@
       execute([
         `cp -f index.html favicon.* ${PATH.dest}/`,
         PATH.assets.length === 0 ? "echo no assets" : `cp -rf ${PATH.assets} ${PATH.dest}/`,
-        PATH.font.length === 0 ? "echo no fonts" : `mkdir -p ${PATH.dest}/fonts && cp -f ${PATH.font}/* ${PATH.dest}/fonts`
+        PATH.fonts.length === 0 ? "echo no fonts" : `mkdir -p ${PATH.dest}/fonts && for i in $(echo ${PATH.fonts} | tr "," " "); do cp -rf $i/fonts/* ${PATH.dest}/fonts; done`
       ]),
 
       scss({
