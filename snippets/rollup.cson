@@ -3,15 +3,18 @@
     'prefix': 'rollup'
     'body': '''
     import buble from "rollup-plugin-buble";
+    import comments from "postcss-discard-comments";
     import commonjs from "rollup-plugin-commonjs";
+    import cssnext from "postcss-cssnext";
     import execute from "rollup-plugin-execute";
     import livereload from "rollup-plugin-livereload";
     import path from "path";
+    import postcss from "postcss";
     import progress from "rollup-plugin-progress";
     import pug from "rollup-plugin-pug";
     import replace from "rollup-plugin-replace";
     import resolve from "rollup-plugin-node-resolve";
-    import scss from "rollup-plugin-scss";
+    import sass from "rollup-plugin-sass";
     import serve from "rollup-plugin-serve";
     import strip from "rollup-plugin-strip";
     import uglify from "rollup-plugin-uglify";
@@ -24,8 +27,10 @@
       src: path.resolve(__dirname, "${1:src}"),
       dest: path.resolve(__dirname, "${2:build}"),
       assets: [$3],
-      font: [$4]
+      fonts: [$4]
     };
+
+    const postcssPlugins = [cssnext({warnForDuplicate: false})];
 
     const plugins = [
       commonjs(),
@@ -44,14 +49,16 @@
         PATH.fonts.length === 0 ? "echo no fonts" : `mkdir -p ${PATH.dest}/fonts && for i in $(echo ${PATH.fonts} | tr "," " "); do cp -rf $i/fonts/* ${PATH.dest}/fonts; done`
       ]),
 
-      scss({
-        includePaths: [path.resolve(__dirname, "node_modules")],
-        outputStyle: debug ? "expanded" : "compressed",
-        sourceMapEmbed: debug ? true : false,
-        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+      sass({
+        output: debug ? `${PATH.dest}/css/${6:bundle}.css` : `${PATH.dest}/css/${6:bundle}.min.css`,
+        processor(css) { return postcss(postcssPlugins).process(css).then(result => result.css); },
+        options: {
+          includePaths: [path.resolve(__dirname, "node_modules")],
+          outputStyle: debug ? "expanded" : "compressed",
+          sourceMapEmbed: debug ? true : false,
+          sourceMapContents: true
+        }
       }),
-
-      buble()
     ];
 
     if (debug) {
@@ -60,6 +67,7 @@
         serve({open: true, contentBase: PATH.dest, host: "${7:0.0.0.0}", port: ${8:8080}})
       );
     } else {
+      postcssPlugins.push(comments({removeAll: true}));
       plugins.push(
         uglify(),
         execute([
@@ -83,15 +91,18 @@
     'prefix': 'rollup-bundle'
     'body': '''
     import buble from "rollup-plugin-buble";
+    import comments from "postcss-discard-comments";
     import commonjs from "rollup-plugin-commonjs";
+    import cssnext from "postcss-cssnext";
     import execute from "rollup-plugin-execute";
     import livereload from "rollup-plugin-livereload";
     import path from "path";
+    import postcss from "postcss";
     import progress from "rollup-plugin-progress";
     import pug from "rollup-plugin-pug";
     import replace from "rollup-plugin-replace";
     import resolve from "rollup-plugin-node-resolve";
-    import scss from "rollup-plugin-scss";
+    import sass from "rollup-plugin-sass";
     import serve from "rollup-plugin-serve";
     import strip from "rollup-plugin-strip";
     import uglify from "rollup-plugin-uglify";
@@ -107,6 +118,8 @@
       dest: path.resolve(__dirname, "${2:build}"),
       assets: [$3]
     };
+
+    const postcssPlugins = [cssnext({warnForDuplicate: false})];
 
     const plugins = [
       commonjs(),
@@ -125,11 +138,15 @@
         PATH.assets.length !== 0 && `cp -rf ${PATH.assets} ${PATH.dest}/`
       ]),
 
-      scss({
-        includePaths: [path.resolve(__dirname, "node_modules")],
-        outputStyle: debug ? "expanded" : "compressed",
-        sourceMapEmbed: debug ? true : false,
-        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+      sass({
+        output: debug ? `${PATH.dest}/css/${5:bundle}.css` : `${PATH.dest}/css/${5:bundle}.min.css`,
+        processor(css) { return postcss(postcssPlugins).process(css).then(result => result.css); },
+        options: {
+          includePaths: [path.resolve(__dirname, "node_modules")],
+          outputStyle: debug ? "expanded" : "compressed",
+          sourceMapEmbed: debug ? true : false,
+          sourceMapContents: true
+        }
       }),
 
       buble()
@@ -143,6 +160,7 @@
         serve({open: true, contentBase: PATH.dest, host: "${6:0.0.0.0}", port: ${7:8080}})
       );
     } else {
+      postcssPlugins.push(comments({removeAll: true}));
       plugins.push(
         uglify(),
         execute([
@@ -168,15 +186,18 @@
     'prefix': 'rollup-vendor'
     'body': '''
     import buble from "rollup-plugin-buble";
+    import comments from "postcss-discard-comments";
     import commonjs from "rollup-plugin-commonjs";
+    import cssnext from "postcss-cssnext";
     import execute from "rollup-plugin-execute";
     import livereload from "rollup-plugin-livereload";
     import path from "path";
+    import postcss from "postcss";
     import progress from "rollup-plugin-progress";
     import pug from "rollup-plugin-pug";
     import replace from "rollup-plugin-replace";
     import resolve from "rollup-plugin-node-resolve";
-    import scss from "rollup-plugin-scss";
+    import sass from "rollup-plugin-sass";
     import serve from "rollup-plugin-serve";
     import strip from "rollup-plugin-strip";
     import uglify from "rollup-plugin-uglify";
@@ -190,8 +211,10 @@
     const PATH = {
       src: path.resolve(__dirname, "${1:src}"),
       dest: path.resolve(__dirname, "${2:build}"),
-      font: [$3]
+      fonts: [$3]
     };
+
+    const postcssPlugins = [cssnext({warnForDuplicate: false})];
 
     const plugins = [
       commonjs(),
@@ -202,19 +225,26 @@
       replace({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development")}),
       resolve({extensions: [".js", ".json", ".jsx", ".vue"], browser: true, jsnext: true}),
       url({limit: 10 * 1024, include: [".gif", ".svg", ".png", ".jpg", ".jpeg", ".eot", ".otf", "ttf", "woff", "woff2"]}),
-      execute([PATH.font.length !== 0 && `mkdir -p ${PATH.dest}/fonts && cp -f ${PATH.font}/* ${PATH.dest}/fonts`]),
+      execute([PATH.fonts.length === 0 ? "echo no fonts" : `mkdir -p ${PATH.dest}/fonts && for i in $(echo ${PATH.fonts} | tr "," " "); do cp -rf $i/fonts/* ${PATH.dest}/fonts; done`]),
 
-      scss({
-        includePaths: [path.resolve(__dirname, "node_modules")],
-        outputStyle: debug ? "expanded" : "compressed",
-        sourceMapEmbed: debug ? true : false,
-        output: debug ? `${PATH.dest}/css/bundle.css` : `${PATH.dest}/css/bundle.min.css`
+      sass({
+        output: debug ? `${PATH.dest}/css/${4:vendor}.css` : `${PATH.dest}/css/${4:vendor}.min.css`,
+        processor(css) { return postcss(postcssPlugins).process(css).then(result => result.css); },
+        options: {
+          includePaths: [path.resolve(__dirname, "node_modules")],
+          outputStyle: debug ? "expanded" : "compressed",
+          sourceMapEmbed: debug ? true : false,
+          sourceMapContents: true
+        }
       }),
 
       buble()
     ];
 
-    if (!debug) { plugins.push(uglify()); }
+    if (!debug) {
+      postcssPlugins.push(comments({removeAll: true}));
+      plugins.push(uglify());
+    }
 
     export default {
       plugins,
