@@ -1,8 +1,12 @@
+# Release 1.0.5
+
+- fix rollup
+
 # Release 1.0.4
 
-- update rollup
+- fix rollup
 
-# Release 1.0.3
+  # Release 1.0.3
 
 - fix html
 
