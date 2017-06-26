@@ -1,3 +1,8 @@
+# Release 1.0.6
+
+- fix npm
+- fix rollup
+
 # Release 1.0.5
 
 - fix rollup
