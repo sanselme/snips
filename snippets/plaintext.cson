@@ -1,6 +1,8 @@
-'*':
+'.text.plain':
+
   'Copyright Notice':
     'prefix': 'legal'
+    'description': 'LICENSE.txt'
     'body': '''
     The MIT License (MIT)
 
@@ -24,3 +26,34 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
     '''
+
+  'Editor Config':
+    'prefix': 'econf'
+    'description': '.editorconfig'
+    'body': '''
+    # EditorConfig helps developers define and maintain consistent
+    # coding styles between different editors and IDEs
+    # http://editorconfig.org
+
+    root = true
+
+    [*]
+
+    # Change these settings to your own preference
+    indent_style = space
+    indent_size = 4
+
+    # We recommend you to keep these unchanged
+    end_of_line = lf
+    charset = utf-8
+    trim_trailing_whitespace = true
+    insert_final_newline = true
+
+    [*.md]
+    trim_trailing_whitespace = false
+    '''
+
+  'Helm Chart - Notes':
+    'prefix': 'hc-notes'
+    'description': 'NOTES.txt'
+    'body': 'https://{{ .Values.fqdn }}'

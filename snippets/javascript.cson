@@ -1,6 +1,50 @@
 '.source.js':
-  'rollup.config.js':
+
+  'Webpack - Config':
+    'prefix': 'webpack'
+    'description': 'webpack.config.js'
+    'body': '''
+    const path = require("path");
+    const webpack = require("webpack");
+
+    const debug = process.env.NODE_ENV !== "production";
+
+    const PATHS = {
+      src: path.resolve(__dirname, "src"),
+      dist: path.resolve(__dirname, "dist")
+    };
+
+    module.exports = {
+      devtool: "inline-source-map",
+      resolve: {
+        extensions: ["", ".js", ".vue"],
+        alias: {vue: "vue/dist/vue"}
+      },
+      entry: {bundle: PATHS.src},
+      output: {
+        path: PATHS.dist,
+        publicPath: "/",
+        filename: "[name].js"
+      },
+      module: {
+        loaders: [
+          {test: /.vue$/, include: PATHS.src, loader: "vue"},
+          {test: /.(jpe?g|png|gif|svg|ttf|eot|woff2?)/, loader: "file"}
+        ]
+      },
+      plugins: debug ? [] : [
+        new webpack.optimize.DedupePlugin(),
+        new webpack.optimize.UglifyJsPlugin({
+          comments: false,
+          sourceMap: false
+        })
+      ]
+    };
+    '''
+
+  'Rollup - Config':
     'prefix': 'rollup'
+    'description': 'rollup.config.js'
     'body': '''
     import buble from "rollup-plugin-buble";
     import comments from "postcss-discard-comments";
@@ -87,8 +131,9 @@
     };
     '''
 
-  'rollup.config.bundle.js':
+  'Rollup - Bundle Config':
     'prefix': 'rollup-bundle'
+    'description': 'rollup.config.bundle.js'
     'body': '''
     import buble from "rollup-plugin-buble";
     import comments from "postcss-discard-comments";
@@ -182,8 +227,9 @@
     };
     '''
 
-  '.rollup.config.vendor.js':
+  'Rollup - Vendor Config':
     'prefix': 'rollup-vendor'
+    'description': '.rollup.config.vendor.js'
     'body': '''
     import buble from "rollup-plugin-buble";
     import comments from "postcss-discard-comments";

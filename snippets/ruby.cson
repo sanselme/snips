@@ -1,6 +1,8 @@
 '.source.ruby':
+
   'Vagrantfile':
     'prefix': 'vagrantfile'
+    'description': 'Vagrantfile'
     'body': '''
     # -*- mode: ruby -*-
     # vi: set ft=ruby :
@@ -49,6 +51,7 @@
 
   'Vagrantfile - Multi':
     'prefix': 'vagrantfile-multi'
+    'description': 'Vagrantfile'
     'body': '''
     # -*- mode: ruby -*-
     # vi: set ft=ruby :

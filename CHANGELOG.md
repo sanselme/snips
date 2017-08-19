@@ -1,3 +1,7 @@
+# Release 1.1.0
+
+- major refactorization
+
 # Release 1.0.6
 
 - fix npm
