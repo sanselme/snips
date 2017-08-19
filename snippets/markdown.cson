@@ -1,4 +1,5 @@
 '*':
+
   'Readme':
     'prefix': 'readme'
     'body': '''
@@ -31,8 +32,8 @@
     SOFTWARE.
     '''
 
-  'Chart Readme':
-    'prefix': 'readme_chart'
+  'Chart - Readme':
+    'prefix': 'hc-readme'
     'body': '''
     # ${3:Chart Title}
 
@@ -44,11 +45,11 @@
     $ helm install ${4:chart-name}
     ```
 
-    ## Prerequisites
+    {5:## Prerequisites
 
     - Kubernetes 1.4+ with Beta APIs enabled
     - PV provisioner support in the underlying infrastructure (Only when persisting data)
-
+    }
     ## Installing the Chart
 
     To install the chart with the release name `my-release`:
@@ -79,9 +80,9 @@
     --------------------------- | ----------------------------------- | ---------------
     `image.repository`          | ${3:Chart Title} `image`            |
     `image.tag`                 | ${3:Chart Title} `image version`    | `latest`
-    `storage.class`             | Storage `class`                     | `nfs`
+    {6:`storage.class`          | Storage `class`                     | `nfs`
     `storage.mode`              | Storage `access mode`               | `ReadWriteOnce`
-    `storage.size`              | Storage `size`                      | `2Gi`
+    `storage.size`              | Storage `size`                      | `2Gi`}
 
     Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example:
 

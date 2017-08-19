@@ -1,0 +1,28 @@
+'.source.shell':
+
+  'Packer - Setup':
+    'prefix': 'pkr-setup'
+    'description': 'setup.sh'
+    'body': '''
+    #!/bin/sh
+    set -e
+
+    # rerun setup
+    [ -n "$RUN_SETUP" ] && rm -f /var/lib/.setup
+
+    # check if already setup
+    [ -f /var/lib/.setup ] && exit 0
+
+    $1
+
+    # mark as setup & run
+    touch /var/lib/.setup && $2
+    '''
+
+  'Packer - Run':
+    'prefix': 'prk-run'
+    'description': 'run.sh'
+    'body': '''
+    #!/bin/sh
+    [ -f /var/lib/.setup ] $1
+    '''
