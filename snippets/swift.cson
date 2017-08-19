@@ -1,6 +1,8 @@
 '.source.swift':
-  'Package.swift (3.0)':
+
+  'Swift Package Manager - 3.0':
     'prefix': 'spm-3'
+    'description': 'Package.swift'
     'body': '''
     // swift-tools-version:3.0
     import PackageDescription
@@ -22,8 +24,10 @@
         dependencies: urls.map { .Package(url: \\$0, versions: Version(.min, .min, .min) ..< Version(.max, .max, .max)) }
     )
     '''
-  'Package.swift (4.0)':
+
+  'Swift Package Manager - 4.0':
     'prefix': 'spm-4'
+    'description': 'Package.swift'
     'body': '''
     // swift-tools-version:4.0
     import PackageDescription

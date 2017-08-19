@@ -1,0 +1,989 @@
+'.source.yaml':
+
+  'Ansible - Preflight':
+    'prefix': 'ansible-bootstrap'
+    'description': 'Preflight.yaml'
+    'body': '''
+    - hosts: all
+      gather_facts: no
+      remote_user: $1
+      vars:
+        nameserver: ${2:8.8.8.8}
+        selinux_mode: permissive
+        user:
+          name: ${3:administrator}
+          fullname: ${4:Administrator}
+          key: "{{ lookup('file', '${5:/Users/sanselme/.ssh/id_rsa.pub}') }}"
+      handlers:
+      - name: restart sshd
+        service:
+          name: sshd
+          state: restarted
+      tasks:
+      - name: check if we're using the default ssh port
+        wait_for:
+          port: 22
+          state: started
+          host: "{{ inventory_hostname }}"
+          connect_timeout: 5
+          timeout: 10
+        delegate_to: localhost
+        ignore_errors: yes
+        register: default_ssh
+      - name: check if we're using the inventory-provided ssh port
+        wait_for:
+          port: "{{ ansible_port }}"
+          state: started
+          host: "{{ inventory_hostname }}"
+          connect_timeout: 5
+          timeout: 10
+        delegate_to: localhost
+        ignore_errors: yes
+        register: configured_ssh
+        when: default_ssh is defined and
+              default_ssh.state is undefined
+      - name: set configured port fact
+        set_fact:
+          configured_port: "{{ ansible_port }}"
+      - name: set inventory ansible_port to default
+        set_fact:
+          ansible_port: 22
+        register: ssh_port_set
+        when: default_ssh is defined and
+              default_ssh.state == "started"
+      - name: ssh port is configured properly
+        debug:
+          msg: "SSH port is configured properly."
+        when: configured_ssh is defined and
+              configured_ssh is defined and
+              configured_ssh.state == "started"
+        register: ssh_port_set
+      - name: fail is ssh port was not auto-detected (unknown)
+        fail:
+          msg: "The SSH port is neither 22 or {{ ansible_port }}."
+        when: ssh_port_set is undefined
+      - name: confirm host connection works
+        ping:
+      - name: setup alternate ssh port
+        lineinfile:
+          dest: /etc/ssh/sshd_config
+          regexp: "^Port"
+          line: "Port {{ configured_port }}"
+        notify: "restart sshd"
+      - name: verify selinux
+        stat:
+          path: /etc/sysconfig/selinux
+        register: selinux
+      - name: install policycoreutils-python
+        yum:
+          name: policycoreutils-python
+          state: latest
+        when: selinux.stat.exists
+      - name: set selinux mode
+        selinux:
+          policy: targeted
+          state: "{{ selinux_mode }}"
+        when: selinux.stat.exists
+      - name: setup selinux for alternate ssh port
+        seport:
+          ports: "{{ configured_port }}"
+          proto: tcp
+          setype: ssh_port_t
+          state: present
+        when: selinux.stat.exists
+      - name: ensure ssh is reloaded if need be
+        meta: flush_handlers
+      - name: ensure we use the configured ssh port for the remainder of the role
+        set_fact:
+          ansible_port: "{{ configured_port }}"
+      - name: run deferred setup to gather facts
+        setup:
+      - name: set hostname
+        hostname:
+          name: "{{ inventory_hostname }}"
+      - name: update hostfile
+        lineinfile:
+          dest: /etc/hosts
+          regexp: "{{ ansible_hostname }}"
+          line: "{{ ansible_default_ipv4.address }}   {{ ansible_fqdn }} {{ ansible_hostname }}"
+      - name: set nameserver
+        lineinfile:
+          dest: /etc/resolv.conf
+          regexp: nameserver
+          line: "nameserver {{ nameserver }}"
+      - name: set dns
+        template:
+          dest: /etc/resolv.conf
+          src: resolv.conf.j2
+      - name: add user
+        user:
+          name: "{{ user.name }}"
+          comment: "{{ user.fullname }}"
+          shell: /bin/bash
+          system: yes
+      - name: set authorized key for user
+        authorized_key:
+          user: "{{ user.name }}"
+          key: "{{ user.key }}"
+      - name: add sudoers.d file for user
+        template:
+          dest: "/etc/sudoers.d/{{ user.name }}"
+          src: user.j2
+          owner: root
+          mode: 0440
+    '''
+
+  'Packer - Playbook':
+    'prefix': 'pkr-playbook'
+    'description': 'playbook.yaml'
+    'body': '''
+    - hosts: all
+      tasks:
+      - name: create directories
+        file:
+          path: "/etc/{{ item }}"
+          state: directory
+        with_items:
+        - my_init.d
+        - service/$1
+      - name: add startup scripts
+        copy:
+          dest: /etc/my_init.d/
+          src: setup.sh
+          mode: 755
+      - name: add service scripts
+        copy:
+          dest: /etc/service/$1/run
+          src: run.sh
+          mode: 755
+    '''
+
+  'K8S - ConfigMap':
+    'prefix': 'k8s-configmap'
+    'body': '''
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: $2
+    data:
+      $3: $4
+    '''
+
+  'K8S - DaemonSet':
+    'prefix': 'k8s-ds'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: DaemonSet
+    metadata:
+      name: $1
+    spec:
+      template:
+        metadata:
+          labels:
+            app: $2
+        spec:
+          containers:
+          - name: $1
+            image: $3:${4:latest}
+            imagePullPolicy: ${5:IfNotPresent}
+            resources:
+              requests:
+                memory: ${6:128Mi}
+                cpu: ${7:100m}
+            # livenessProbe:
+            #   initialDelaySeconds: ${8:30}
+            #   timeoutSeconds: ${9:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${9:10}
+            #   timeoutSeconds: ${10:5}
+            ports:
+            - containerPort: $11
+    '''
+
+  'K8S - Deployment':
+    'prefix': 'k8s-deploy'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: $1
+    spec:
+      replicas: ${2:1}
+      template:
+        metadata:
+          labels:
+            app: $3
+        spec:
+          containers:
+          - name: $1
+            image: $4:${5:latest}
+            imagePullPolicy: ${6:IfNotPresent}
+            resources:
+              requests:
+                memory: ${7:128Mi}
+                cpu: ${8:100m}
+            # livenessProbe:
+            #   initialDelaySeconds: ${9:30}
+            #   timeoutSeconds: ${10:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${10:10}
+            #   timeoutSeconds: ${11:5}
+            ports:
+            - containerPort: $12
+    '''
+
+  'K8S - Ingress':
+    'prefix': 'k8s-ingress'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: $1
+      annotations:
+        Kubernetes.io/tls-acme: "true"
+        Kubernetes.io/ingress.class: nginx
+    spec:
+      tls:
+      - secretName: $2
+        hosts:
+        - $3
+      rules:
+      - host: $3
+        http:
+          paths:
+          - path: /
+            backend:
+              serviceName: $4
+              servicePort: $5
+    '''
+
+  'K8S - Persistent Volume Claim':
+    'prefix': 'k8s-pvc'
+    'body': '''
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: $1
+      annotations:
+        volume.beta.kubernetes.io/storage-class: nfs
+    spec:
+      accessModes:
+      - $2
+      resources:
+        requests:
+          storage: $3
+    '''
+
+  'K8S - Secret':
+    'prefix': 'k8s-secret'
+    'body': '''
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: $1
+    data:
+      $2: $3
+    '''
+
+  'K8S - TLS Secret':
+    'prefix': 'k8s-secret-tls'
+    'body': '''
+    apiVersion: v1
+    kind: Secret
+    type: kubernetes.io/tls
+    metadata:
+      name: $1
+    data:
+      tls.crt: $3
+      tls.key: $4
+    '''
+
+  'K8S - Service':
+    'prefix': 'k8s-svc'
+    'body': '''
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: $1
+    spec:
+      selector:
+        app: $2
+      ports:
+      - name: $3
+        port: $4
+    '''
+
+  'K8S - Headless Service':
+    'prefix': 'k8s-svc-headless'
+    'body': '''
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: $1
+    spec:
+      clusterIP: None
+      selector:
+        app: $2
+      ports:
+      - name: $3
+        port: $4
+    '''
+
+  'K8S - StatefulSet':
+    'prefix': 'k8s-statefulset'
+    'body': '''
+    apiVersion: apps/v1beta1
+    kind: StatefulSet
+    metadata:
+      name: $1
+    spec:
+      replicas: ${2:1}
+      serviceName: $3
+      volumeClaimTemplates:
+      - metadata:
+          name: $1
+          annotations:
+            volume.beta.kubernetes.io/storage-class: ${4:nfs}
+        spec:
+          accessModes:
+          - ${5:ReadWriteOnce}
+          resources:
+            requests:
+              storage: ${6:100Mi}
+      template:
+        metadata:
+          labels:
+            app: $7
+        spec:
+          terminationGracePeriodSeconds: ${8:0}
+          containers:
+          - name: $1
+            image: $9:${10:latest}
+            imagePullPolicy: ${11:IfNotPresent}
+            # livenessProbe:
+            #   initialDelaySeconds: ${12:30}
+            #   timeoutSeconds: ${13:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${13:10}
+            #   timeoutSeconds: ${14:5}
+            resources:
+              requests:
+                memory: ${15:128Mi}
+                cpu: ${16:100m}
+            ports:
+            - containerPort: $17
+            volumeMounts:
+            - name: $1
+              mountPath: $18
+    '''
+
+  'K8S - Storage Class':
+    'prefix': 'k8s-storageclass'
+    'body': '''
+    apiVersion: storage.k8s.io/v1beta1
+    kind: StorageClass
+    metadata:
+      namespace: ${1:kube-system}
+      name: $2
+      annotations:
+        storageclass.beta.kubernetes.io/is-default-class: ${3:"false"}
+    provisioner: kubernetes/$2
+    '''
+
+  'Helm Chart':
+    'prefix': 'hc'
+    'description': 'Chart.yaml'
+    'body': '''
+    name: $1
+    version: 0.1.0
+    description: $1 Helm Chart for Kubernetes
+    keywords:
+    - $1
+    sources:
+    - ${2:https://git.korg.io/helm/$1}
+    maintainers:
+    - name: ${3:Schubert Anselme}
+      email: ${4:sanselme@korg.io}
+    '''
+
+  'Helm Chart - Values':
+    'prefix': 'hc-values'
+    'description': 'values.yaml'
+    'body': '''
+    image:
+      repository: $1
+      tag: ${2:latest}
+    storage:
+      mode: ReadWriteOnce
+      size: ${3:2Gi}
+    resources:
+      requests:
+        memory: ${4:128Mi}
+        cpu: ${5:100m}
+    ingress:
+      acme: ${6:true}
+    '''
+
+  'Helm Chart - Requirements':
+    'prefix': 'hc-requirements'
+    'body': '''
+    dependencies:
+    - name: $1
+      version: $2
+      repository: $3
+    '''
+
+  'Helm Chart - Dependency':
+    'prefix': 'hc-dependency'
+    'body': '''
+    - name: $1
+      version: $2
+      repository: $3
+    '''
+
+  'Helm Chart - Namespace':
+    'prefix': 'hc-namespace'
+    'body': 'namespace: {{ default "kube-system" .Values.namespace }}'
+
+  'Helm Chart - Fullname':
+    'prefix': 'hc-fullname'
+    'body': '{{ template "fullname" . }}'
+
+  'Helm Chart - Labels':
+    'prefix': 'hc-labels'
+    'body': '''
+    labels:
+      app: {{ template "fullname" . }}
+      chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+    '''
+
+  'Helm Chart - Checksum Annotation':
+    'prefix': 'hc-checksum'
+    'body': 'checksum/config: {{ include (print $.Chart.Name "/templates/${1:configmap}.yaml") . | sha256sum }}'
+
+  'Helm Chart - Image':
+    'prefix': 'hc-image'
+    'body': '{{ printf "%s:%s" .Values.image.repository .Values.image.tag }}'
+
+  'Helm Chart - Images':
+    'prefix': 'hc-images'
+    'body': '{{ printf "%s:%s" .Values.$1.image.repository .Values.$1.image.tag }}'
+
+  'Helm Chart - Secret':
+    'prefix': 'hc-secret-data'
+    'body': '${1:key}: {{ .Values.$2 | b64enc | quote }}'
+
+  'Helm Chart - Formated Print':
+    'prefix': 'hc-printf'
+    'body': '{{ printf "$1" $2 }}'
+
+  'Helm Chart - To YAML':
+    'prefix': 'hc-to-yaml'
+    'body': '{{ toYaml .Values.$1 | trim | indent $2 }}'
+
+  'Helm Chart - ConfigMap':
+    'prefix': 'hc-configmap'
+    'body': '''
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+    data:
+      $1: $2
+    '''
+
+  'Helm Chart - DaemonSet':
+    'prefix': 'hc-ds'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: DaemonSet
+    metadata:
+      name: {{ template "fullname" . }}
+    spec:
+      template:
+        metadata:
+          labels:
+    {{ include "labels" . | indent 8 }}
+          annotations:
+    {{ include "annotations" . | indent 8 }}
+        spec:
+          containers:
+          - name: {{ .Chart.Name }}
+            image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+            imagePullPolicy: {{ default "IfNotPresent" .Values.image.pullPolicy }}
+            resources:
+    {{ toYaml .Values.resources | trim | indent 10 }}
+            # livenessProbe:
+            #   initialDelaySeconds: ${1:30}
+            #   timeoutSeconds: ${2:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${2:10}
+            #   timeoutSeconds: ${3:5}
+            ports:
+            - containerPort: $4
+    '''
+
+  'Helm Chart - Deployment':
+    'prefix': 'hc-deploy'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: {{ template "fullname" . }}
+    spec:
+      replicas: {{ default 1 .Values.replicas }}
+      template:
+        metadata:
+          labels:
+    {{ include "labels" . | indent 8 }}
+          annotations:
+    {{ include "annotations" . | indent 8 }}
+        spec:
+          containers:
+          - name: {{ .Chart.Name }}
+            image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+            imagePullPolicy: {{ default "IfNotPresent" .Values.image.pullPolicy }}
+            resources:
+    {{ toYaml .Values.resources | trim | indent 10 }}
+            # livenessProbe:
+            #   initialDelaySeconds: ${1:30}
+            #   timeoutSeconds: ${2:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${2:10}
+            #   timeoutSeconds: ${3:5}
+            ports:
+            - containerPort: $4
+    '''
+
+  'Helm Chart - Ingress':
+    'prefix': 'hc-ingress'
+    'body': '''
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+        {{- if .Values.ingress.acme }}
+        kubernetes.io/tls-acme: "true"
+        {{- end }}
+        kubernetes.io/ingress.class: {{ default "nginx" .Values.ingress.class }}
+    spec:
+      tls:
+      - secretName: {{ template "fullname" . }}-tls
+        hosts:
+        - {{ .Values.fqdn }}
+      rules:
+      - host: {{ .Values.fqdn }}
+        http:
+          paths:
+          - path:
+            backend:
+              serviceName: {{ template "fullname" . }}
+              servicePort: $1
+    '''
+
+  'Helm Chart - Persistent Volume Claim':
+    'prefix': 'hc-pvc'
+    'body': '''
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+        volume.beta.kubernetes.io/storage-class: {{ default "nfs" .Values.storage.class }}
+    spec:
+      accessModes:
+      - {{ .Values.storage.mode }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.size | quote }}
+    '''
+
+  'Helm Chart - Secret':
+    'prefix': 'hc-secret'
+    'body': '''
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+    data:
+      $1: {{ .Values.$2 | b64enc | quote }}
+    '''
+
+  'Helm Chart - TLS Secret':
+    'prefix': 'hc-secret-tls'
+    'body': '''
+    apiVersion: v1
+    kind: Secret
+    type: kubernetes.io/tls
+    metadata:
+      name: {{ template "fullname" . }}-tls
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+    data:
+      tls.crt: {{ .Values.$2 | b64enc | quote }}
+      tls.key: {{ .Values.$3 | b64enc | quote }}
+    '''
+
+  'Helm Chart - Service':
+    'prefix': 'hc-svc'
+    'body': '''
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+    spec:
+      selector:
+        app: {{ template "fullname" . }}
+      ports:
+      - name: $1
+        port: $2
+    '''
+
+  'Helm Chart - Headless Service':
+    'prefix': 'hc-svc-headless'
+    'body': '''
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ template "fullname" . }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+    spec:
+      clusterIP: None
+      selector:
+        app: {{ template "fullname" . }}
+      ports:
+      - name: $1
+        port: $2
+    '''
+
+  'Helm Chart - StatefulSet':
+    'prefix': 'hc-statefulset'
+    'body': '''
+    apiVersion: apps/v1beta1
+    kind: StatefulSet
+    metadata:
+      name: {{ template "fullname" . }}
+    spec:
+      replicas: {{ default 1 .Values.replicas }}
+      serviceName: {{ template "fullname" . }}
+      volumeClaimTemplates:
+      - metadata:
+          name: {{ template "fullname" . }}
+          annotations:
+            volume.beta.kubernetes.io/storage-class: {{ default "nfs" .Values.storage.class | quote }}
+        spec:
+          accessModes:
+          - {{ .Values.storage.mode }}
+          resources:
+            requests:
+              storage: {{ .Values.storage.size }}
+      template:
+        metadata:
+          labels:
+    {{ include "labels" . | indent 8 }}
+          annotations:
+    {{ include "annotations" . | indent 8 }}
+        spec:
+          terminationGracePeriodSeconds: ${1:0}
+          containers:
+          - name: {{ .Chart.Name }}
+            image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+            imagePullPolicy: {{ default "IfNotPresent" .Values.image.pullPolicy }}
+            # livenessProbe:
+            #   initialDelaySeconds: ${2:30}
+            #   timeoutSeconds: ${3:10}
+            # readinessProbe:
+            #   initialDelaySeconds: ${3:10}
+            #   timeoutSeconds: ${4:5}
+            resources:
+    {{ toYaml .Values.resources | trim | indent 10 }}
+            ports:
+            - containerPort: $5
+            volumeMounts:
+            - name: {{ template "fullname" . }}
+              mountPath: $6
+    '''
+
+  'Helm Chart - StorageClass':
+    'prefix': 'hc-storageclass'
+    'body': '''
+    apiVersion: storage.k8s.io/v1beta1
+    kind: StorageClass
+    metadata:
+      namespace: {{ default "kube-system" .Values.namespace }}
+      name: {{ .Values.storage.class }}
+      labels:
+    {{ include "labels" . | indent 4 }}
+      annotations:
+    {{ include "annotations" . | indent 4 }}
+        {{- if .Values.storage.default }}
+        storageclass.beta.kubernetes.io/is-default-class: {{ .Values.storage.default | quote }}
+        {{- end }}
+    provisioner: kubernetes/{{ .Values.storage.class }}
+    '''
+
+  'SCSS Lint RC':
+    'prefix': 'scsslrc'
+    'description': '.scss-lint.yml'
+    'body': '''
+    # Default application configuration that all configurations inherit from.
+
+    scss_files: "**/*.s+(a|c)ss"
+    plugin_directories: ['.scss-linters']
+
+    # List of gem names to load custom linters from (make sure they are already
+    # installed)
+    plugin_gems: []
+
+    linters:
+      BangFormat:
+        enabled: true
+        space_before_bang: true
+        space_after_bang: false
+
+      BemDepth:
+        enabled: false
+        max_elements: 1
+
+      BorderZero:
+        enabled: true
+        convention: zero # or `none`
+
+      ColorKeyword:
+        enabled: true
+
+      ColorVariable:
+        enabled: true
+
+      Comment:
+        enabled: true
+
+      DebugStatement:
+        enabled: true
+
+      DeclarationOrder:
+        enabled: true
+
+      DisableLinterReason:
+        enabled: false
+
+      DuplicateProperty:
+        enabled: true
+
+      ElsePlacement:
+        enabled: true
+        style: same_line # or 'new_line'
+
+      EmptyLineBetweenBlocks:
+        enabled: true
+        ignore_single_line_blocks: true
+
+      EmptyRule:
+        enabled: true
+
+      ExtendDirective:
+        enabled: false
+
+      FinalNewline:
+        enabled: true
+        present: true
+
+      HexLength:
+        enabled: true
+        style: short # or 'long'
+
+      HexNotation:
+        enabled: true
+        style: lowercase # or 'uppercase'
+
+      HexValidation:
+        enabled: true
+
+      IdSelector:
+        enabled: true
+
+      ImportantRule:
+        enabled: true
+
+      ImportPath:
+        enabled: true
+        leading_underscore: false
+        filename_extension: false
+
+      Indentation:
+        enabled: true
+        allow_non_nested_indentation: false
+        character: space # or 'tab'
+        width: 2
+
+      LeadingZero:
+        enabled: true
+        style: exclude_zero # or 'include_zero'
+
+      MergeableSelector:
+        enabled: true
+        force_nesting: true
+
+      NameFormat:
+        enabled: true
+        allow_leading_underscore: true
+        convention: hyphenated_lowercase # or 'camel_case', or 'snake_case', or a regex pattern
+
+      NestingDepth:
+        enabled: true
+        max_depth: 5
+        ignore_parent_selectors: false
+
+      PlaceholderInExtend:
+        enabled: false
+
+      PropertyCount:
+        enabled: false
+        include_nested: false
+        max_properties: 10
+
+      PropertySortOrder:
+        enabled: true
+        ignore_unspecified: false
+        min_properties: 2
+        separate_groups: false
+
+      PropertySpelling:
+        enabled: true
+        extra_properties: []
+
+      PropertyUnits:
+        enabled: true
+        global: [
+          'ch', 'em', 'ex', 'rem',                 # Font-relative lengths
+          'cm', 'in', 'mm', 'pc', 'pt', 'px', 'q', # Absolute lengths
+          'vh', 'vw', 'vmin', 'vmax',              # Viewport-percentage lengths
+          'deg', 'grad', 'rad', 'turn',            # Angle
+          'ms', 's',                               # Duration
+          'Hz', 'kHz',                             # Frequency
+          'dpi', 'dpcm', 'dppx',                   # Resolution
+          '%']                                     # Other
+        properties: {}
+
+      QualifyingElement:
+        enabled: true
+        allow_element_with_attribute: false
+        allow_element_with_class: false
+        allow_element_with_id: false
+
+      SelectorDepth:
+        enabled: true
+        max_depth: 5
+
+      SelectorFormat:
+        enabled: true
+        convention: hyphenated_lowercase # or 'strict_BEM', or 'hyphenated_BEM', or 'snake_case', or 'camel_case', or a regex pattern
+
+      Shorthand:
+        enabled: true
+        allowed_shorthands: [1, 2, 3, 4]
+
+      SingleLinePerProperty:
+        enabled: true
+        allow_single_line_rule_sets: true
+
+      SingleLinePerSelector:
+        enabled: true
+
+      SpaceAfterComma:
+        enabled: true
+        style: one_space # or 'no_space', or 'at_least_one_space'
+
+      SpaceAfterPropertyColon:
+        enabled: true
+        style: one_space # or 'no_space', or 'at_least_one_space', or 'aligned'
+
+      SpaceAfterPropertyName:
+        enabled: true
+
+      SpaceAfterVariableName:
+        enabled: true
+
+      SpaceAroundOperator:
+        enabled: true
+        style: one_space # or 'no_space'
+
+      SpaceBeforeBrace:
+        enabled: true
+        style: space # or 'new_line'
+        allow_single_line_padding: false
+
+      SpaceBetweenParens:
+        enabled: true
+        spaces: 0
+
+      StringQuotes:
+        enabled: true
+        style: double_quotes # or single_quotes
+
+      TrailingSemicolon:
+        enabled: true
+
+      TrailingWhitespace:
+        enabled: true
+
+      TrailingZero:
+        enabled: false
+
+      TransitionAll:
+        enabled: false
+
+      UnnecessaryMantissa:
+        enabled: true
+
+      UnnecessaryParentReference:
+        enabled: true
+
+      UrlFormat:
+        enabled: true
+
+      UrlQuotes:
+        enabled: true
+
+      VariableForProperty:
+        enabled: false
+        properties: []
+
+      VendorPrefix:
+        enabled: false
+        identifier_list: base
+        additional_identifiers: []
+        excluded_identifiers: []
+
+      ZeroUnit:
+        enabled: true
+
+      Compass::*:
+        enabled: false
+      '''
