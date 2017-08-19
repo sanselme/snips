@@ -1,0 +1,14 @@
+'.text.generic-config.jinja':
+
+  'Ansible - Resolve Config':
+    'prefix': 'ansible-resovl-conf'
+    'description': 'resolv.conf.j2'
+    'body': '''
+    nameserver {{ nameserver }}
+    search {{ ansible_domain }}
+    '''
+
+  'Ansible - User Sudoer':
+    'prefix': 'ansible-user-sudoer'
+    'description': 'user.j2'
+    'body': '{{ user.name }} ALL=(ALL) NOPASSWD:ALL'

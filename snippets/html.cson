@@ -1,4 +1,5 @@
-'.text.html.basic':
+'.text.html':
+
   'HTML':
     'prefix': 'html'
     'body': '''
@@ -19,4 +20,38 @@
           <script src="/js/bundle.js"></script>
       </body>
     </html>
+    '''
+
+  'Helm Chart - Helpers':
+    'prefix': 'hc-helpers'
+    'description': '_helpers.tpl'
+    'body': '''
+    {{/* vim: set filetype=mustache: */}}
+
+    {{/*
+    Expand the name of the chart.
+    */}}
+    {{- define "name" -}}
+    {{- default .Chart.Name .Values.nameOverride | trunc 24 -}}
+    {{- end -}}
+
+    {{/*
+    Create a default fully qualified app name.
+    We truncate at 24 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+    */}}
+    {{- define "fullname" -}}
+    {{- $name := default .Chart.Name .Values.nameOverride -}}
+    {{- default .Release.Name $name | trunc 24 -}}
+    {{- end -}}
+
+    {{- define "labels" -}}
+    app: {{ template "fullname" . }}
+    chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    {{- end -}}
+
+    {{- define "annotations" -}}
+    helm.sh/created: {{ .Release.Time.Seconds | quote }}
+    {{- end -}}
     '''
